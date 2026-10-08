@@ -1,0 +1,19 @@
+{
+  "workload": "chatbot",
+  "input_tokens": 256000,
+  "max_model_len": 262144,
+  "output_tokens": 256,
+  "sessions": 32,
+  "seed": 2562026,
+  "tokenizer": "build/deepseek-v4-pro-tokenizer",
+  "revision": null,
+  "tokenizer_url": null,
+  "trust_remote_code": true,
+  "deepseek_v4_encoder": "build/deepseek-v4-pro-tokenizer/encoding/encoding_dsv4.py",
+  "template_kwargs": "{\"thinking\":false}",
+  "corpus": null,
+  "out": "datasets/generated/deepseek-v4-pro-chatbot-256k-32.jsonl",
+  "sha256": "66880756c3dcd5d55db6078a3b1a2442cd22388f1690310f11fd3c25f18f7033",
+  "token_count_source": "deepseek-v4-encoder",
+  "encoder_sha256": "abc0d26120250dda0ae077dc64aa28836026e61e970854aaeb792445e6a0dde6"
+}

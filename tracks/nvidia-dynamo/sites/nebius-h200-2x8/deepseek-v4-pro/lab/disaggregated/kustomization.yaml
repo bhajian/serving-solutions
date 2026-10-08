@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: deepseek-v4-pro
+resources:
+- ../as-measured/etcd
+- ../as-measured/frontend-kv-router
+- ../as-measured/workers-tp8-disaggregated
+- ../../../../../../../platform/sites/nebius-h200-2x8/storage/claims-deepseek-v4-pro
+components:
+- ../common

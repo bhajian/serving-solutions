@@ -3,28 +3,22 @@ __pycache__/
 .pytest_cache/
 .ipynb_checkpoints/
 build/
-results/*/
-results/*.csv
-# Retain the completed 256K comparison and its supporting evidence.
-!results/deepseek-v4-pro-256k-comparison/
-!results/deepseek-v4-pro-256k-comparison/**
-!results/nemotron-3-nano-128k-comparison/
-!results/nemotron-3-nano-128k-comparison/**
-!results/nemotron-3-nano-8k-128k-comparison/
-!results/nemotron-3-nano-8k-128k-comparison/**
-# Raw per-token interval binaries (hundreds of MB per run) stay on the client PVC.
-results/**/intervals-*.f32
+# Local benchmark output (the runners default to --results results).
+results/
 # Generated benchmark datasets (including the 256K-context comparison).
 datasets/generated/
 *.env
 !*.env.example
 
-# Site values and rendered site manifests stay local.
-deploy/site.env
+# Site values stay local; rendered manifests go to build/site/.
+platform/site.env
 
-# Raw result evidence lives in release archives (results/ARCHIVE.md).
-results/**/*.prom
-results/**/*.jsonl
-results/**/*.log
-results/**/*.png
-results/**/*.executed.ipynb
+# Raw study evidence lives in release archives (tracks/<track>/studies/ARCHIVE.md);
+# the CSV and JSON summaries that notebooks read stay tracked.
+tracks/*/studies/**/intervals-*.f32
+tracks/*/studies/**/*.prom
+tracks/*/studies/**/*.jsonl
+tracks/*/studies/**/*.log
+tracks/*/studies/**/*.png
+tracks/*/studies/**/*.executed.ipynb
+tracks/*/studies/**/run-log*.txt

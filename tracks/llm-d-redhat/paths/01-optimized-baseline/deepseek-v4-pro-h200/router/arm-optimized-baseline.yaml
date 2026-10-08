@@ -1,0 +1,24 @@
+# ARM B: the llm-d v0.10.0 optimized-baseline guide's scheduler, plugin defaults as
+# shipped (prefix matching capped at 131,072 tokens, peakPrefillThroughput calibrated
+# for Qwen3-32B on H100). Only the shared utilization-detector block is added.
+router:
+  epp:
+    pluginsConfigFile: optimized-baseline.yaml
+    pluginsCustomConfig:
+      optimized-baseline.yaml: |
+        apiVersion: llm-d.ai/v1alpha1
+        kind: EndpointPickerConfig
+        plugins:
+        - type: approx-prefix-cache-producer
+        - type: inflight-load-producer
+        - type: prefix-cache-affinity-filter
+        - type: token-load-scorer
+        - type: utilization-detector
+          parameters: {queueDepthThreshold: 1000000, kvCacheUtilThreshold: 1.0, headroom: 1.0, metricsStalenessThreshold: 30s}
+        flowControl:
+          saturationDetector: {pluginRef: utilization-detector}
+        schedulingProfiles:
+        - name: default
+          plugins:
+          - pluginRef: prefix-cache-affinity-filter
+          - pluginRef: token-load-scorer

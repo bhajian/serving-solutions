@@ -41,7 +41,7 @@ def test_evidence_is_appended_never_truncated(tmp_path):
     assert all('utc' in l and 'pid' in l for l in lines)
 
 
-@pytest.mark.parametrize('driver', sorted(ROOT.glob('deploy/sites/nebius-h200-2x8/*/benchmark_*.py')),
+@pytest.mark.parametrize('driver', sorted(ROOT.glob('tracks/*/studies/*/benchmark_*.py')),
                          ids=lambda p: p.name)
 def test_every_driver_takes_the_lock_and_appends(driver):
     text = driver.read_text()

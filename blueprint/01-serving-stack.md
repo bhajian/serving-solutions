@@ -71,7 +71,7 @@ Verify against the pinned versions in [reference/sources.md](../reference/source
 
 ## How this repository implements the stack
 
-| Layer | Implemented in [deploy/](../deploy/) |
+| Layer | Implemented in [tracks](../tracks/README.md) |
 |---|---|
 | Control plane | Dynamo (tracks 01–03), llm-d (track 04) |
 | Engine | vLLM, SGLang. TensorRT-LLM is on the [roadmap](../ROADMAP.md). |

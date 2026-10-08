@@ -1,0 +1,23 @@
+# NVIDIA GPU Operator v26.7.1 Helm values (keys checked against
+# reference/upstream/nvidia-operators/gpu-operator-v26.7.1-values.yaml by tests).
+#   helm upgrade --install gpu-operator nvidia/gpu-operator --version v26.7.1 \
+#     -n gpu-operator --create-namespace -f gpu-operator-values.yaml
+driver:
+  enabled: true
+  version: "595.91.07"          # the chart's pinned default; change only together with a re-validation
+  rdma:
+    enabled: true               # GPUDirect RDMA for NIXL/UCX KV transfer
+    useHostMofed: false         # OFED comes from the Network Operator's NicClusterPolicy
+toolkit:
+  enabled: true
+devicePlugin:
+  enabled: true
+gfd:
+  enabled: true                 # publishes nvidia.com/gpu.product, used by the graph node selectors
+dcgmExporter:
+  enabled: true
+  serviceMonitor:
+    enabled: true               # GPU utilization, memory, XID and NVLink metrics for tracks/nvidia-dynamo/observability
+    interval: 15s
+gds:
+  enabled: false                # GPUDirect Storage is on the KV-offloading roadmap, not used here

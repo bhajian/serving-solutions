@@ -6,7 +6,7 @@
 
 | What you get from this repository | What you still own |
 | --- | --- |
-| Operator install values ([deploy/operator](../deploy/operator/)), DynamoGraphDeployments, Planner and router configuration | Operator upgrades and control-plane standards for your clusters |
+| Operator install values ([tracks/nvidia-dynamo/install](../tracks/nvidia-dynamo/install/)), DynamoGraphDeployments, Planner and router configuration | Operator upgrades and control-plane standards for your clusters |
 
 The serving control plane sits between the API and the engines and decides **where every request runs**: which worker, which phase, and how many workers of each kind exist.
 
@@ -101,7 +101,7 @@ Other projects cover parts of this layer and often compose with the two above:
 | Want SLO-driven P/D autoscaling and multi-tier KV from one vendor stack | **Dynamo** (Planner + KVBM) |
 | Are a Kubernetes-first platform team standardizing on Gateway API | **llm-d** |
 | Want routing decisions pluggable as Kubernetes-native components | **llm-d** (EPP plugins) |
-| Need to compare both on your hardware | Deploy [02](../deploy/sites/hgx-b300-2x8/02-dynamo-disagg-vllm/) and [04](../deploy/sites/hgx-b300-2x8/04-llm-d-disagg/) with the same model and use [benchmarks/](../benchmarks/) |
+| Need to compare both on your hardware | Deploy [02](../tracks/nvidia-dynamo/sites/hgx-b300-2x8/02-dynamo-disagg-vllm/) and [04](../tracks/llm-d-redhat/paths/05-pd-disaggregation/hgx-b300-qwen3-coder-480b/) with the same model and use [benchmarks/](../benchmarks/) |
 
 Either way, keep the access layer OpenAI-compatible so the control plane stays replaceable ([principle 12](02-design-principles.md#12-keep-the-control-plane-boring)).
 

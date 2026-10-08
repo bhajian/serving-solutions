@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from tools import render_production  # noqa: E402
 
-PROD = ROOT / 'deploy/overlays/production'
+PROD = ROOT / 'tracks/nvidia-dynamo/production'
 OVERLAYS = sorted(p.parent for p in PROD.glob('*-*/*aggregated/kustomization.yaml'))
 pytestmark = pytest.mark.skipif(not shutil.which('kustomize'), reason='kustomize not installed')
 
@@ -74,7 +74,7 @@ def test_production_overlay(overlay):
 
 
 def test_no_production_frontend_uses_round_robin_anywhere():
-    for path in [*PROD.rglob('*.yaml'), *(ROOT / 'deploy/base').rglob('*.yaml')]:
+    for path in [*PROD.rglob('*.yaml'), *(ROOT / 'tracks/nvidia-dynamo/graphs').rglob('*.yaml')]:
         text = path.read_text()
         assert not re.search(r'router-mode[ =:"\'\-\s]*round-robin', text), path
         assert 'DYN_ROUTER_MODE' not in text or 'round-robin' not in text, path

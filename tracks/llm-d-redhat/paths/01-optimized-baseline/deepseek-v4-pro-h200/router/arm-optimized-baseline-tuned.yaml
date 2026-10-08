@@ -1,0 +1,33 @@
+# ARM C: the optimized-baseline plugins tuned for 256K prompts on this deployment, from
+# measurements in the routing study (calibration.json):
+# - match the whole prompt in 256-token blocks (vLLM --block-size 256); auto-tune is off
+#   because vLLM reports block_size=4 and num_gpu_blocks=18710 for DeepSeek V4's compressed KV
+# - index capacity = 695,506 KV tokens per replica / 256 ≈ 2,700 blocks
+# - peakPrefillThroughput = measured cold 256K prefill, ~6,000 router tokens/s (bytes / 4)
+# - maxTTFTPenaltyMs ≈ the cost of re-prefilling a 256K prompt elsewhere (~41 s)
+# - queueThresholdTokens = one replica's KV capacity
+# Same utilization-detector block as every arm.
+router:
+  epp:
+    pluginsConfigFile: optimized-baseline-tuned.yaml
+    pluginsCustomConfig:
+      optimized-baseline-tuned.yaml: |
+        apiVersion: llm-d.ai/v1alpha1
+        kind: EndpointPickerConfig
+        plugins:
+        - type: approx-prefix-cache-producer
+          parameters: {autoTune: false, blockSizeTokens: 256, maxPrefixTokensToMatch: 0, maxPrefixBlocksToMatch: 0, lruCapacityPerServer: 2700}
+        - type: inflight-load-producer
+        - type: prefix-cache-affinity-filter
+          parameters: {peakPrefillThroughput: 6000, maxTTFTPenaltyMs: 40000}
+        - type: token-load-scorer
+          parameters: {queueThresholdTokens: 695000}
+        - type: utilization-detector
+          parameters: {queueDepthThreshold: 1000000, kvCacheUtilThreshold: 1.0, headroom: 1.0, metricsStalenessThreshold: 30s}
+        flowControl:
+          saturationDetector: {pluginRef: utilization-detector}
+        schedulingProfiles:
+        - name: default
+          plugins:
+          - pluginRef: prefix-cache-affinity-filter
+          - pluginRef: token-load-scorer

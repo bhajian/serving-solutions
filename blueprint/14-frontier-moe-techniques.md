@@ -108,7 +108,7 @@ positions each, a decode step already holds about 1,024 tokens.
 
 Recommended bring-up order on B300: aggregated TP8 without speculation, then add DSpark at
 concurrency 1–16 and measure acceptance on real prompts, then P/D. The validation track is
-[experiments/09](../experiments/09-b300-reference-validation/), and K3 is not yet in it.
+[tracks/nvidia-dynamo/studies/planned/09](../tracks/nvidia-dynamo/studies/planned/09-b300-reference-validation/), and K3 is not yet in it.
 
 ## Transferable lessons
 

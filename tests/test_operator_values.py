@@ -6,7 +6,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 CHART = yaml.safe_load((ROOT / 'reference/upstream/dynamo-v1.4.0/platform-values.yaml').read_text())
-FILES = sorted((ROOT / 'deploy/operator').glob('values-*.yaml'))
+FILES = sorted((ROOT / 'tracks/nvidia-dynamo/install').glob('values-*.yaml'))
 
 
 def paths(d, prefix=()):
@@ -33,7 +33,7 @@ def test_values_keys_exist_in_pinned_chart(path):
 
 
 def test_production_values():
-    v = yaml.safe_load((ROOT / 'deploy/operator/values-production.yaml').read_text())
+    v = yaml.safe_load((ROOT / 'tracks/nvidia-dynamo/install/values-production.yaml').read_text())
     assert v['global']['grove'] == {'install': False, 'enabled': True}
     assert v['global']['etcd']['install'] is False and v['dynamo-operator']['discoveryBackend'] == 'kubernetes'
     assert '@sha256:' in v['dynamo-operator']['controllerManager']['manager']['image']['tag']

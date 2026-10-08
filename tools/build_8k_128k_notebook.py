@@ -1,4 +1,4 @@
-"""Write notebooks/nemotron_3_nano_8k_128k.ipynb (analysis of saved results only)."""
+"""Write tracks/nvidia-dynamo/studies/nemotron-3-nano-8k-128k-comparison/nemotron_3_nano_8k_128k.ipynb (analysis of saved results only)."""
 from pathlib import Path
 
 import nbformat as nbf
@@ -25,10 +25,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from IPython.display import display
-ROOT = Path.cwd() if (Path.cwd() / 'benchmarks').exists() else Path.cwd().parent
+ROOT = next(p for p in [Path.cwd(), *Path.cwd().parents] if (p / 'benchmarks').is_dir())
 sys.path.insert(0, str(ROOT))
 from benchmarks.collect import collect
-RESULTS = Path(os.environ.get('NEMOTRON_8K_128K_RESULTS', ROOT / 'results/nemotron-3-nano-8k-128k-comparison'))
+RESULTS = Path(os.environ.get('NEMOTRON_8K_128K_RESULTS', ROOT / 'tracks/nvidia-dynamo/studies/nemotron-3-nano-8k-128k-comparison'))
 EXPORT = RESULTS / 'analysis'
 EXPORT.mkdir(parents=True, exist_ok=True)
 summary_path = collect(RESULTS) if RESULTS.exists() else None
@@ -162,7 +162,7 @@ md('''## Side by side with the 128K-input study
 
 The two studies differ in TP size (TP8 versus TP4), concurrency, context and output budget,
 so this table places the workloads side by side; it is not a controlled comparison of one variable.'''),
-code('''LONG = ROOT / 'results/nemotron-3-nano-128k-comparison/summary.csv'
+code('''LONG = ROOT / 'tracks/nvidia-dynamo/studies/nemotron-3-nano-128k-comparison/summary.csv'
 if LONG.exists() and not runs.empty:
     long = pd.read_csv(LONG); long['study'] = '128K in / 256 out (TP8, c=4)'
     long['mode'] = long.technology.map({'dynamo-disagg-k8s':'Disaggregated','dynamo-agg-k8s':'Aggregated'})
@@ -182,5 +182,5 @@ md('''## Interpretation and limits
 - Overlap scheduling is disabled in both modes (as in the 128K study), BF16 weights, native KV dtype.
 - Three runs per mode show only limited variation. Topology order is fixed (aggregated first).''')]
 nb = nbf.v4.new_notebook(cells=cells, metadata={'kernelspec': {'name': 'python3', 'display_name': 'Python 3'}})
-nbf.write(nb, ROOT / 'notebooks/nemotron_3_nano_8k_128k.ipynb')
-print('wrote notebooks/nemotron_3_nano_8k_128k.ipynb')
+nbf.write(nb, ROOT / 'tracks/nvidia-dynamo/studies/nemotron-3-nano-8k-128k-comparison/nemotron_3_nano_8k_128k.ipynb')
+print('wrote tracks/nvidia-dynamo/studies/nemotron-3-nano-8k-128k-comparison/nemotron_3_nano_8k_128k.ipynb')

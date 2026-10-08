@@ -6,12 +6,12 @@ The lab deployments are hand-written and need **none** of these tools; the opera
 
 | Tool | What it does | Touches servers or cluster? |
 |---|---|---|
-| [render_graphs.py](render_graphs.py) | Renders the operator DynamoGraphDeployments in `deploy/base` from one profile per model | No. Writes files only. |
+| [render_graphs.py](render_graphs.py) | Renders the operator DynamoGraphDeployments in `tracks/nvidia-dynamo/graphs` from one profile per model | No. Writes files only. |
 | [render_production.py](render_production.py) | Renders the production overlays (site patches, namespace bundle, Planner, profiling, gateway) | No |
 | [render_observability.py](render_observability.py) | Renders PodMonitors, alert rules, dashboard and canary | No |
-| [render_experiments.py](render_experiments.py) | Renders `experiments/` (plans, checklists, per-configuration overlays) | No |
+| [render_experiments.py](render_experiments.py) | Renders `tracks/nvidia-dynamo/studies/planned/` (plans, checklists, per-configuration overlays) | No |
 | [render_diagrams.py](render_diagrams.py) | Renders PNG and draw.io diagrams from `assets/diagrams/src/diagrams.py` | No |
-| [render_site.py](render_site.py) | Fills `<PLACEHOLDER>` site values from a git-ignored `deploy/site.env` | No |
+| [render_site.py](render_site.py) | Fills `<PLACEHOLDER>` site values from a git-ignored `platform/site.env` | No |
 | [preflight.py](preflight.py) | Read-only cluster readiness for an experiment: GPUs, RDMA devices, CRDs, PVCs, Prometheus, image digests | Reads the cluster |
 | [archive_results.py](archive_results.py) | Packs raw benchmark evidence into verified release archives, or restores them | No |
 | [vendor_crds.py](vendor_crds.py) | Extracts pinned Dynamo CRD schemas into `reference/upstream` | No |
@@ -19,9 +19,9 @@ The lab deployments are hand-written and need **none** of these tools; the opera
 | [download_model.py](download_model.py) | Downloads one pinned checkpoint from `configs/models.yaml`, checks disk space first, writes `DEPLOYED_REVISION` | Writes to the model directory on the host where you run it |
 | [preflight.sh](preflight.sh) | Host inventory: IP, GPUs, InfiniBand devices, model files, revision, memlock | Read-only |
 | [render.py](render.py) | Generates Compose or Kubernetes files for **any** model, engine and context from `configs/models.yaml` + `configs/cluster.yaml`. Use it to create variants, then read and diff the output against the hand-written reference. | No. Writes files only. |
-| [validate.py](validate.py) | Strict schema validation (unknown fields are errors) of every manifest and every `kustomize build` output under `deploy/` and `experiments/`, against Kubernetes 1.33, Compose, vendored Dynamo 1.4.0 CRDs and pinned Gateway API, Envoy Gateway, Prometheus Operator, cert-manager, Network Operator and Inference Extension CRDs | No |
+| [validate.py](validate.py) | Strict schema validation (unknown fields are errors) of every manifest and every `kustomize build` output under `tracks/` and `tracks/nvidia-dynamo/studies/planned/`, against Kubernetes 1.33, Compose, vendored Dynamo 1.4.0 CRDs and pinned Gateway API, Envoy Gateway, Prometheus Operator, cert-manager, Network Operator and Inference Extension CRDs | No |
 | [sweep.sh](sweep.sh) | Runs `benchmarks.run` over several concurrency levels and repetitions, then collects results | Sends inference requests |
-| [llmd-router.sh](llmd-router.sh) | `render` or `install` the pinned llm-d router Helm chart ([deploy/04](../deploy/sites/hgx-b300-2x8/04-llm-d-disagg/)) | `install` changes the cluster |
+| [llmd-router.sh](llmd-router.sh) | `render` or `install` the pinned llm-d router Helm chart ([llm-d path 05, B300](../tracks/llm-d-redhat/paths/05-pd-disaggregation/hgx-b300-qwen3-coder-480b/)) | `install` changes the cluster |
 
 Examples:
 

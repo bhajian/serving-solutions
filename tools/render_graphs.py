@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Render the operator-managed DynamoGraphDeployment (nvidia.com/v1beta1) graphs.
 
-    python tools/render_graphs.py          # writes deploy/base/dynamo/<model>/{aggregated,disaggregated}/
+    python tools/render_graphs.py          # writes tracks/nvidia-dynamo/graphs/<model>/{aggregated,disaggregated}/
 
 Each model has ONE graph name; the aggregated and disaggregated variants differ only
 in the worker components, so switching topology is an edit of one custom resource
 (`kubectl apply -k` of the other variant updates the same object). Engine flags start
-from the configuration measured in results/ (the lab manifests under
-deploy/sites/nebius-h200-2x8/<model>/lab/as-measured) and add only the reliability
+from the configuration measured in tracks/nvidia-dynamo/studies/ (the lab manifests under
+tracks/nvidia-dynamo/sites/nebius-h200-2x8/<model>/lab/as-measured) and add only the reliability
 mitigations listed in MITIGATIONS. tests/test_graphs.py enforces that.
 
 Every field used here is verified against Dynamo v1.4.0 and SGLang v0.5.16; see
@@ -19,7 +19,7 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'deploy/base/dynamo'
+OUT = ROOT / 'tracks/nvidia-dynamo/graphs'
 
 SGLANG_IMAGE = ('nvcr.io/nvidia/ai-dynamo/sglang-runtime:1.4.0'
                 '@sha256:314bda9534498899ad855f8c72434f4015660521665025a587e73486b74917f3')
@@ -32,7 +32,7 @@ ITL_BUCKETS = [str(round(0.001 * i, 3)) for i in range(1, 41)] + [
 MITIGATIONS = {
     '--gc-threshold': 'raise CPython GC thresholds so generation-2 collections (0.34-0.45 s '
                       'output pauses every ~11 s in the 8K/128K study) run ~100x less often; '
-                      'confirmed by experiments/04-reliability',
+                      'confirmed by tracks/nvidia-dynamo/studies/planned/04-reliability',
     '--router-min-initial-workers': 'frontend waits for every worker before routing, so the first '
                                     'registered worker does not absorb the initial burst',
     '--router-decode-active-request-weight': 'count active requests in the KV-router cost; with unique '
@@ -59,7 +59,7 @@ COMMON_ENV = [
     # NIXL/UCX over InfiniBand. UCX_NET_DEVICES is set per site (production overlay).
     {'name': 'UCX_TLS', 'value': 'rc,cuda_copy,cuda_ipc,sm,self'},
     {'name': 'UCX_RNDV_SCHEME', 'value': 'get_zcopy'},
-    # Opt-in GC freeze hook (deploy/base/common/sitecustomize.py); empty = disabled.
+    # Opt-in GC freeze hook (tracks/nvidia-dynamo/common/sitecustomize.py); empty = disabled.
     {'name': 'PYTHONPATH', 'value': '/opt/serving-hooks'},
     {'name': 'SERVING_GC_FREEZE_AFTER_S', 'value': ''},
 ]
@@ -70,7 +70,7 @@ PROFILES = {
         'revision': 'bf77c3174f68ad409e1c2aa60daeb46e32d1c606',
         'weights_subpath': '.models/nemotron-3-nano-bf16',
         'gpus_per_worker': 4,
-        'measured': 'results/nemotron-3-nano-8k-128k-comparison (TP4, 262144 context)',
+        'measured': 'tracks/nvidia-dynamo/studies/nemotron-3-nano-8k-128k-comparison (TP4, 262144 context)',
         'engine': [
             '--tensor-parallel-size', '4', '--trust-remote-code', '--context-length', '262144',
             '--chunked-prefill-size', '4096', '--mem-fraction-static', '0.88', '--page-size', '1',
@@ -89,10 +89,10 @@ PROFILES = {
     },
     'deepseek-v4-pro': {
         'model_id': 'deepseek-ai/DeepSeek-V4-Pro-0813',
-        'revision': None,  # read from the measured run record; see deploy/sites/.../deepseek-v4-pro
+        'revision': None,  # read from the measured run record; see tracks/nvidia-dynamo/sites/.../deepseek-v4-pro
         'weights_subpath': '',
         'gpus_per_worker': 8,
-        'measured': 'results/deepseek-v4-pro-256k-comparison (TP8, 262144 context)',
+        'measured': 'tracks/nvidia-dynamo/studies/deepseek-v4-pro-256k-comparison (TP8, 262144 context)',
         'engine': [
             '--tensor-parallel-size', '8', '--trust-remote-code', '--context-length', '262144',
             '--chunked-prefill-size', '4096', '--mem-fraction-static', '0.88', '--page-size', '256',
@@ -111,7 +111,7 @@ PROFILES = {
 
 def deepseek_revision():
     import json
-    record = ROOT / 'deploy/sites/nebius-h200-2x8/deepseek-v4-pro/lab/as-measured/records/deployment.json'
+    record = ROOT / 'tracks/nvidia-dynamo/sites/nebius-h200-2x8/deepseek-v4-pro/lab/as-measured/records/deployment.json'
     return json.loads(record.read_text())['model']['revision']
 
 

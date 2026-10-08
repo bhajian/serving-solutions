@@ -1,0 +1,52 @@
+# Deployment profile: copy per workload class, fill every field or write `unknown`.
+# Field meanings and sources: framework/1-intake/README.md
+profile: <short-name>
+owner: <partner or customer>
+date: <YYYY-MM-DD>
+
+model:
+  id: <hugging-face-id>
+  revision: <commit>
+  architecture: <dense | moe | moe-mla | hybrid-ssm | multimodal>
+  total_params_b: <billions>
+  active_params_b: <billions; equals total for dense>
+  weights_gb: <checkpoint size on disk>
+  precision: <bf16 | fp8 | fp4 | mixed, e.g. mxfp4-experts+fp8>
+  context_window: <tokens>
+  native_speculation: <none | mtp | eagle | dspark>
+
+hardware:
+  gpu: <e.g. H200-141GB, B300-288GB>
+  gpus_per_node: <n>
+  nodes: <n>
+  scale_up: <nvlink-8 | nvlink-72>
+  scale_out: <infiniband | roce | tcp>
+  gpudirect_rdma: <true | false>
+  storage: <rwo-block | rwx-filesystem | object>
+  storage_read_mb_s: <per volume, measured>
+
+workload:
+  class: <multi-turn-chat | rag | agent-loop | agentic-coding | reasoning | code-completion | batch>
+  isl_tokens: {p50: <n>, p99: <n>}
+  osl_tokens: {p50: <n>, p99: <n>}
+  prefix_reuse: <0..1>
+  turns_per_session: <n>
+  think_time_s: <n>
+  arrival: <closed-loop | poisson | bursty | diurnal>
+  peak_concurrency: <sessions>
+  peak_rps: <requests/s>
+
+goal: <long-context | output-optimized | sla | throughput-cost>
+
+slo:
+  ttft_p99_ms: <n | none>
+  itl_p99_ms: <n | none>
+  min_output_tok_s: <n | none>
+  availability: <e.g. 99.9%>
+
+constraints:
+  platform: <kubernetes | openshift | docker>
+  vendor_support: <nvidia-ai-enterprise | red-hat | none>
+  engines_allowed: [<vllm | sglang | tensorrt-llm>]
+  data_residency: <region or none>
+  notes: <anything else that rules options in or out>

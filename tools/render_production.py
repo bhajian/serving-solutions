@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render the production overlays for operator-managed Dynamo graphs.
 
-    python tools/render_production.py    # writes deploy/overlays/production/
+    python tools/render_production.py    # writes tracks/nvidia-dynamo/production/
 
 For each (model, site) it writes:
   <model>-<site>/namespace/       Namespace (Pod Security labels), default-deny NetworkPolicies,
@@ -12,7 +12,7 @@ and once, cluster-wide:
   gateway/                        GatewayClass, Gateway (TLS on 443), cert-manager Certificate
 
 Site values that differ per cluster stay as <PLACEHOLDER> tokens; tools/render_site.py fills
-them from deploy/site.env. Field names are verified against Dynamo 1.4.0, Gateway API v1.3.0,
+them from platform/site.env. Field names are verified against Dynamo 1.4.0, Gateway API v1.3.0,
 Envoy Gateway v1.4.2 and cert-manager v1.17.2 by tools/validate.py (strict).
 """
 import json
@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from tools.render_graphs import PROFILES, SGLANG_IMAGE  # noqa: E402
 
-OUT = ROOT / 'deploy/overlays/production'
+OUT = ROOT / 'tracks/nvidia-dynamo/production'
 PLANNER_IMAGE = ('nvcr.io/nvidia/ai-dynamo/dynamo-planner:1.4.0'
                  '@sha256:67d4341b038c1fb3e63e0a6b614d0de0f4316a5596378001127d0d07dddf2455')
 GRAPH_LABEL = 'nvidia.com/dynamo-graph-deployment-name'
@@ -172,7 +172,7 @@ def namespace_bundle(model, p, site_name, site):
                                                                                      {'protocol': 'TCP', 'port': 6443}]},
                       {'to': [{'namespaceSelector': {'matchLabels': {'kubernetes.io/metadata.name': 'monitoring'}}}],
                        'ports': [{'protocol': 'TCP', 'port': 9090}]}]}},
-        # In-cluster benchmark client (experiments/common): requests to the frontend and
+        # In-cluster benchmark client (tracks/nvidia-dynamo/studies/planned/common): requests to the frontend and
         # metric snapshots from the workers' system port.
         {'apiVersion': 'networking.k8s.io/v1', 'kind': 'NetworkPolicy',
          'metadata': {'name': 'allow-benchmark-client', 'namespace': ns},
@@ -315,7 +315,7 @@ def blue_green(model, site_name, site):
     """Green graph next to the live (blue) one, traffic split by HTTPRoute weights."""
     green = f'{model}-green'
     ops = site_patches(model, 'aggregated', site) + [{'op': 'replace', 'path': '/metadata/name', 'value': green}]
-    green_k = kustomization([f'../../../../../base/dynamo/{model}/aggregated'], namespace=model, patches=[
+    green_k = kustomization([f'../../../../graphs/{model}/aggregated'], namespace=model, patches=[
         {'target': {'group': 'nvidia.com', 'version': 'v1beta1', 'kind': 'DynamoGraphDeployment', 'name': model},
          'patch': yaml.safe_dump(ops, sort_keys=False)},
         # The probe and GC-hook ConfigMaps come with the blue graph; both graphs share them.
@@ -351,7 +351,7 @@ def main():
             dump(top / 'namespace/kustomization.yaml', [kustomization(['namespace.yaml', 'edge.yaml'])], HEADER)
             dump(top / 'profiling/dgdr.yaml', [profiling_request(model, p, site)], HEADER +
                  '# SLA profiling for the Planner. Apply once, after the weights are staged; see\n'
-                 '# experiments/03-planner-demo. autoApply is false: the hand-maintained graph stays authoritative.\n')
+                 '# tracks/nvidia-dynamo/studies/planned/03-planner-demo. autoApply is false: the hand-maintained graph stays authoritative.\n')
             dump(top / 'profiling/kustomization.yaml', [kustomization(['dgdr.yaml'], namespace=model)], HEADER)
             for topology in ('aggregated', 'disaggregated'):
                 d = top / topology
@@ -369,7 +369,7 @@ def main():
                     extra = {'generatorOptions': {'disableNameSuffixHash': True},
                              'configMapGenerator': [{'name': f'{model}-planner-config', 'files': ['planner_config.json']}]}
                 dump(d / 'kustomization.yaml', [kustomization(
-                    [f'../../../../base/dynamo/{model}/{topology}', '../namespace'], namespace=model,
+                    [f'../../../graphs/{model}/{topology}', '../namespace'], namespace=model,
                     patches=patches, extra=extra)], HEADER)
             print('wrote', top)
 

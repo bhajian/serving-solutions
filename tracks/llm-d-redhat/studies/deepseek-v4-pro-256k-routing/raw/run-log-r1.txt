@@ -1,0 +1,44 @@
+pod/deepseek-v4-pro-0 condition met
+pod/deepseek-v4-pro-1 condition met
+pod/deepseek-v4-pro-2 condition met
+pod/deepseek-v4-pro-3 condition met
+Waiting for deployment "llmd-epp" rollout to finish: 0 out of 1 new replicas have been updated...
+Waiting for deployment "llmd-epp" rollout to finish: 0 out of 1 new replicas have been updated...
+Waiting for deployment "llmd-epp" rollout to finish: 0 out of 1 new replicas have been updated...
+Waiting for deployment "llmd-epp" rollout to finish: 0 of 1 updated replicas are available...
+deployment "llmd-epp" successfully rolled out
+{"label": "r1", "arm": "random", "router_ready_endpoints": 4, "cache_resets": [{"replica": 0, "status": 200, "body": "{\"success\":true}", "time": 1791480958.5858495}, {"replica": 1, "status": 200, "body": "{\"success\":true}", "time": 1791480958.6007442}, {"replica": 2, "status": 200, "body": "{\"success\":true}", "time": 1791480958.6161067}, {"replica": 3, "status": 200, "body": "{\"success\":true}", "time": 1791480958.6298833}]}
+chatbot-2562026-2/0: success=True valid=True TTFT=27277.438461998827ms output=256
+chatbot-2562026-2/1: success=True valid=True TTFT=931.4258030008205ms output=112
+chatbot-2562026-3/0: success=True valid=True TTFT=27838.735149998683ms output=25
+chatbot-2562026-5/0: success=True valid=True TTFT=54114.2000130003ms output=25
+chatbot-2562026-7/0: success=True valid=True TTFT=54567.9037050013ms output=21
+chatbot-2562026-2/2: success=True valid=True TTFT=47174.414499000704ms output=66
+chatbot-2562026-3/1: success=True valid=True TTFT=27806.720426999163ms output=13
+chatbot-2562026-4/0: success=True valid=True TTFT=27877.84967799962ms output=256
+chatbot-2562026-1/0: success=True valid=True TTFT=79988.06272000002ms output=21
+chatbot-2562026-7/1: success=True valid=True TTFT=31359.968017999563ms output=13
+chatbot-2562026-5/1: success=True valid=True TTFT=52624.9308940005ms output=19
+chatbot-2562026-6/0: success=True valid=True TTFT=27422.224586000084ms output=256
+chatbot-2562026-3/2: success=True valid=True TTFT=49376.80817399996ms output=141
+chatbot-2562026-0/0: success=True valid=True TTFT=53646.00204499948ms output=256
+chatbot-2562026-5/2: success=True valid=True TTFT=27543.39846899893ms output=113
+chatbot-2562026-10/0: success=True valid=True TTFT=27520.419966998816ms output=256
+chatbot-2562026-1/1: success=True valid=True TTFT=87102.08486400006ms output=13
+chatbot-2562026-9/0: success=True valid=True TTFT=54066.650763001235ms output=25
+chatbot-2562026-10/1: success=True valid=True TTFT=27331.890785000724ms output=100
+chatbot-2562026-10/2: success=True valid=True TTFT=896.6282889996364ms output=116
+chatbot-2562026-4/1: success=True valid=True TTFT=71353.25787700094ms output=136
+chatbot-2562026-7/2: success=True valid=True TTFT=104455.28647599895ms output=87
+chatbot-2562026-8/0: success=True valid=True TTFT=46026.00190699923ms output=256
+chatbot-2562026-6/1: success=True valid=True TTFT=27771.665951000614ms output=77
+chatbot-2562026-9/1: success=True valid=True TTFT=27979.181066999445ms output=13
+chatbot-2562026-0/1: success=True valid=True TTFT=80200.4362509997ms output=123
+chatbot-2562026-1/2: success=True valid=True TTFT=77427.27301800005ms output=125
+chatbot-2562026-11/0: success=True valid=True TTFT=50352.65555299884ms output=21
+chatbot-2562026-0/2: success=True valid=True TTFT=27240.83997299931ms output=62
+chatbot-2562026-8/1: success=True valid=True TTFT=27956.339895999918ms output=88
+chatbot-2562026-13/0: success=True valid=True TTFT=28746.45735499871ms output=25
+chatbot-2562026-6/2: success=True valid=True TTFT=45470.931330000894ms output=65
+chatbot-2562026-11/1: success=True valid=True TTFT=46451.30160499866ms output=13
+chatbot-2562026-11/2: success=True valid=True TTFT=929.385800000091ms output=48

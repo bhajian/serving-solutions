@@ -30,14 +30,14 @@ A working etcd connection does **not** prove RDMA works, and a failed etcd conne
 
 ## Failures observed on the H200 site and their fixes
 
-Each entry below happened during a recorded study. The evidence is in `results/` and
+Each entry below happened during a recorded study. The evidence is in `tracks/nvidia-dynamo/studies/` and
 the release archives. The fix lives in the production manifests and is scheduled for
-confirmation in [experiments/04-reliability](../experiments/04-reliability/).
+confirmation in [tracks/nvidia-dynamo/studies/planned/04-reliability](../tracks/nvidia-dynamo/studies/planned/04-reliability/).
 
 ### KV router imbalance: 152 / 120 / 120 / 120 requests per worker
 
 **Seen in:** 8K/128K study, third aggregated run (excluded; kept under
-`results/nemotron-3-nano-8k-128k-comparison/excluded-runs/router-imbalance`). One
+`tracks/nvidia-dynamo/studies/nemotron-3-nano-8k-128k-comparison/excluded-runs/router-imbalance`). One
 worker received 152 of 512 simultaneous requests. With a cap of 136 per worker, 16
 requests queued for 37 minutes and the run reported 21,968 tokens/s instead of
 about 34,700.
@@ -56,7 +56,7 @@ worth of blocks per active request; experimental in 1.4.0),
 `--router-min-initial-workers` equal to the number of routable workers, and
 `--router-replica-sync` for two frontends. The lab fell back to `round-robin`;
 `tests/test_production.py` fails if any base or production manifest uses round-robin.
-Confirm with [experiments/02-kv-router](../experiments/02-kv-router/).
+Confirm with [tracks/nvidia-dynamo/studies/planned/02-kv-router](../tracks/nvidia-dynamo/studies/planned/02-kv-router/).
 
 ### Endpoint returns 503 "not ready" while every pod is Ready
 
@@ -70,7 +70,7 @@ after the prefill router deactivates (`lib/llm/src/http/service/health.rs` L63-9
 Kubernetes saw nothing wrong. The lab used a single etcd and lease-based registration.
 
 **Fix:** production uses Kubernetes-API discovery (the operator default; no etcd).
-The frontend runs `deploy/base/common/frontend_probe.py`. Its readiness fails unless
+The frontend runs `tracks/nvidia-dynamo/common/frontend_probe.py`. Its readiness fails unless
 `/health` lists a `generate` instance for every required component (`backend`, plus
 `prefill` in PD mode). Its liveness fails once workers that were seen stay missing for
 more than 5 minutes, so the frontend restarts and re-watches discovery. The alert
@@ -114,7 +114,7 @@ in SGLang PD mode. That points to the radix-tree insertion of finished sequences
 not proven.
 
 **Mitigation:** for workloads without prefix reuse, add the Kustomize Component
-[`deploy/overlays/production/components/no-prefix-reuse`](../deploy/overlays/production/components/no-prefix-reuse/)
+[`tracks/nvidia-dynamo/production/components/no-prefix-reuse`](../tracks/nvidia-dynamo/production/components/no-prefix-reuse/)
 to an aggregated overlay. It adds `--disable-radix-cache`. Keep the radix cache for
 chat and agent traffic, where prefix reuse is the main TTFT lever. Confirmation run:
 experiment 04.
@@ -139,7 +139,7 @@ Nebius deployment, native stacks showed concurrent copies blocked in
 `cuMemcpyHtoDAsync` / `pthread_rwlock_wrlock`. For checkpoints that fit in host
 RAM, enable `--weight-loader-prefetch-checkpoints` and allow time for the cold
 disk read; see [SGLang #29268](https://github.com/sgl-project/sglang/issues/29268)
-and the [site manifests](../deploy/sites/nebius-h200-2x8/deepseek-v4-pro/). Watch disk-read
+and the [site manifests](../tracks/nvidia-dynamo/sites/nebius-h200-2x8/deepseek-v4-pro/). Watch disk-read
 and page-cache progress as well as GPU utilization. Do not interpret shard
 completion or frontend health as model readiness.
 
@@ -147,8 +147,8 @@ completion or frontend health as model readiness.
 
 ```bash
 # Docker: state and logs (run on the node, from the repository root)
-docker compose --env-file deploy/cluster.env -f deploy/<track>/docker/node-a.yaml ps -a
-docker compose --env-file deploy/cluster.env -f deploy/<track>/docker/node-a.yaml logs --tail 200 <service>
+docker compose --env-file tracks/nvidia-dynamo/sites/hgx-b300-2x8/compose/cluster.env -f tracks/nvidia-dynamo/sites/hgx-b300-2x8/compose/<track>/node-a.yaml ps -a
+docker compose --env-file tracks/nvidia-dynamo/sites/hgx-b300-2x8/compose/cluster.env -f tracks/nvidia-dynamo/sites/hgx-b300-2x8/compose/<track>/node-a.yaml logs --tail 200 <service>
 
 # Kubernetes
 kubectl -n <namespace> get pods -o wide
@@ -164,4 +164,4 @@ ibv_devinfo -l
 cat /sys/class/infiniband/mlx5_4/ports/1/counters/port_xmit_data
 ```
 
-For the original step-by-step manual deployment, including frontend recovery, see [manual-docker-walkthrough.md](manual-docker-walkthrough.md#10-diagnose-a-failed-check).
+For the original step-by-step manual deployment, including frontend recovery, see [manual-docker-walkthrough.md](../tracks/nvidia-dynamo/sites/hgx-b300-2x8/manual-docker-walkthrough.md#10-diagnose-a-failed-check).

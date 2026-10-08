@@ -32,7 +32,7 @@ def test_notebook_executes(tmp_path, with_data):
                     summary['backend'] = 'sglang'
                 write_csv(out / 'summary.csv', [summary])
                 write_csv(out / 'requests.csv', [{k: v for k, v in row.items() if not isinstance(v, (dict, list))}])
-    nb = nbformat.read(ROOT / 'notebooks/compare.ipynb', as_version=4)
+    nb = nbformat.read(ROOT / 'benchmarks/compare.ipynb', as_version=4)
     nb.cells.insert(0, nbformat.v4.new_code_cell('import os\nos.environ["DISAGG_RESULTS"] = ' + repr(str(tmp_path))))
     NotebookClient(nb, timeout=120, kernel_name='python3', resources={'metadata': {'path': str(ROOT)}}).execute()
     nbformat.write(nb, tmp_path / 'executed.ipynb')

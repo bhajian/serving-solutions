@@ -1,0 +1,51 @@
+# Example profile: the llm-d routing study on the Nebius H200 cluster (October 2026).
+profile: deepseek-v4-pro-256k-multiturn
+owner: Nebius solutions architecture (internal study)
+date: 2026-10-08
+
+model:
+  id: deepseek-ai/DeepSeek-V4-Pro-0813
+  revision: 72e1d3230f6c080a530b0a1d46f8eb4602340597
+  architecture: moe-mla
+  total_params_b: unknown        # not needed for sizing: the checkpoint size is measured
+  active_params_b: unknown
+  weights_gb: 893                 # 892,762,496,275 bytes on disk
+  precision: mxfp4-experts+fp8
+  context_window: 262144          # served window; the model supports more
+  native_speculation: dspark      # not usable on Hopper with vLLM 0.26
+
+hardware:
+  gpu: H200-141GB
+  gpus_per_node: 8
+  nodes: 4
+  scale_up: nvlink-8
+  scale_out: infiniband
+  gpudirect_rdma: true
+  storage: rwo-block              # one 1500Gi network SSD per replica
+  storage_read_mb_s: 450          # measured during the weight copy
+
+workload:
+  class: multi-turn-chat
+  isl_tokens: {p50: 256000, p99: 256100}
+  osl_tokens: {p50: 256, p99: 256}
+  prefix_reuse: 0.66              # turns 2 and 3 repeat turn 1's 256K context
+  turns_per_session: 3
+  think_time_s: 0
+  arrival: closed-loop
+  peak_concurrency: 8
+  peak_rps: unknown
+
+goal: long-context
+
+slo:
+  ttft_p99_ms: none               # the study measures it; no contractual target
+  itl_p99_ms: none
+  min_output_tok_s: none
+  availability: none
+
+constraints:
+  platform: kubernetes            # Nebius managed Kubernetes, not OpenShift
+  vendor_support: red-hat
+  engines_allowed: [vllm]
+  data_residency: none
+  notes: Red Hat AI Inference Server image; upstream llm-d router (not a Red Hat supported platform here)

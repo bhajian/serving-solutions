@@ -2,7 +2,7 @@
 
 [Home](../README.md) › [Reference](README.md) › Sources
 
-Reviewed 2026-09-29. The original Docker guide ([manual-docker-walkthrough.md](manual-docker-walkthrough.md)) supplies the Nemotron model revision, image digest, node IPs and hardware inventory. The local files are adaptations, not vendor qualification of B300 TP8/TP8.
+Reviewed 2026-09-29. The original Docker guide ([manual-docker-walkthrough.md](../tracks/nvidia-dynamo/sites/hgx-b300-2x8/manual-docker-walkthrough.md)) supplies the Nemotron model revision, image digest, node IPs and hardware inventory. The local files are adaptations, not vendor qualification of B300 TP8/TP8.
 
 | Component | Pin / provenance |
 |---|---|

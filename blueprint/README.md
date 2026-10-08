@@ -39,7 +39,7 @@ An architecture guide for serving large language models in production. It descri
 
 ## How the blueprint relates to the rest of the repository
 
-- **[deploy/](../deploy/)** implements the blueprint: operator-managed Dynamo graphs and a production overlay, plus the lab manifests behind every measured result.
+- **[tracks](../tracks/README.md)** implements the blueprint: operator-managed Dynamo graphs and a production overlay, plus the lab manifests behind every measured result.
 - **[benchmarks/](../benchmarks/)** measures deployments the same way, so architecture choices are decided by data.
 - **[ROADMAP.md](../ROADMAP.md)** lists what is designed here but not yet implemented, such as TensorRT-LLM tracks and KV-cache offloading with GPUDirect Storage.
 

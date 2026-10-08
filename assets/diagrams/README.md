@@ -1,6 +1,6 @@
 # Diagrams
 
-[Home](../../README.md) › Diagrams
+[Home](../../README.md) › [Assets](../README.md) › Diagrams
 
 Architecture diagrams for the README and blueprint. Each one is defined once as data in
 [src/diagrams.py](src/diagrams.py) (boxes, groups, arrows and text on a pixel grid) and
@@ -22,7 +22,7 @@ gradients or shadows. Text is sized to stay legible when a diagram is shown at R
 
 The renderer refuses to finish if any text overflows its box or the canvas, crosses into a
 box it does not belong to, or overlaps other text, so a layout edit cannot clip a label.
-Diagrams quote measured numbers only from `results/`; anything not yet run is labelled
+Diagrams quote measured numbers only from `tracks/nvidia-dynamo/studies/`; anything not yet run is labelled
 UNVALIDATED.
 
 | Diagram | Used in |

@@ -59,5 +59,5 @@ Measurement definitions match [benchmarks/README.md](../benchmarks/README.md).
 | **NIXL / UCX** | NVIDIA Inference Xfer Library, the KV transfer layer, running over UCX (RDMA, NVLink, CUDA IPC). |
 | **GPUDirect RDMA** | NIC reads and writes GPU memory directly, without a host copy. |
 | **Grove / KAI** | Grove reconciles a graph into gang-scheduled PodCliqueSets; the KAI scheduler places them as a unit. |
-| **Lab / production path** | Lab: the hand-written manifests that produced `results/`. Production: the operator-managed graphs and overlays in `deploy/base` and `deploy/overlays/production`. |
+| **Lab / production path** | Lab: the hand-written manifests that produced `tracks/nvidia-dynamo/studies/`. Production: the operator-managed graphs and overlays in `tracks/nvidia-dynamo/graphs` and `tracks/nvidia-dynamo/production`. |
 | **UNVALIDATED** | Prepared and checked offline, but not yet run on hardware with results committed. |
