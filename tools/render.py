@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """OPTIONAL power-user tool: render deployment files for any model in configs/models.yaml.
 
-The hand-written files in deploy/01-03 are the reference deployments. Use this
+The hand-written files in tracks/nvidia-dynamo/sites/hgx-b300-2x8/01-03 are the reference deployments. Use this
 tool when you need the same topology for a different model, context length or
 engine, then read the output before applying it (see tools/README.md).
 """

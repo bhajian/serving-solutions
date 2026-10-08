@@ -12,7 +12,7 @@ studies on that site agree ([chapter 12](12-results-and-reconciliation.md)).
 | | What you get from this repository | What you still own |
 | --- | --- | --- |
 | Decision | The criteria below, the measured H200 evidence, and prepared experiments to test your own region | Your traffic profile, SLOs and fleet size |
-| Implementation | Operator-managed aggregated and disaggregated graphs ([deploy/base](../deploy/base/)) | Choosing and validating the P:D ratio for your load |
+| Implementation | Operator-managed aggregated and disaggregated graphs ([tracks/nvidia-dynamo/graphs](../tracks/nvidia-dynamo/graphs/)) | Choosing and validating the P:D ratio for your load |
 
 ![Choosing a serving design: decision flow from workload to topology, then engine and control plane](../assets/diagrams/png/decision-flow.png)
 
@@ -36,7 +36,7 @@ measured counter-examples are in [chapter 12](12-results-and-reconciliation.md))
    (plus EP) and decode uses wide EP with DP attention
    ([pd-parallelism](../assets/diagrams/png/pd-parallelism.png)).
 5. **KV-aware routing works.** The router balances load and keeps prefix reuse; verify
-   both ([experiments/02](../experiments/02-kv-router/)).
+   both ([tracks/nvidia-dynamo/studies/planned/02](../tracks/nvidia-dynamo/studies/planned/02-kv-router/)).
 6. **The fabric makes the handoff cheap.** GPUDirect RDMA over InfiniBand or RoCE, or an
    NVLink domain. Over TCP, the transfer can cost more than it saves.
 
@@ -73,21 +73,21 @@ minimum worker count to express it, with transfer intensity by model class
 
 | Scenario | Topology | Engine | Start from | Status |
 | --- | --- | --- | --- | --- |
-| **Chat or agents on 2 × HGX H200**, any SLO | Aggregated replicas, KV-aware router | SGLang | [nemotron-3-nano aggregated](../deploy/overlays/production/nemotron-3-nano-h200/aggregated/) | Topology validated (results/); operator path UNVALIDATED |
-| **Mixed ISL/OSL with a tight p99 ITL SLO**, 4+ nodes or TP2/TP4 workers, InfiniBand | Disaggregated, Planner-managed P:D | SGLang or vLLM | [nemotron-3-nano disaggregated](../deploy/overlays/production/nemotron-3-nano-h200/disaggregated/) | UNVALIDATED: [experiments/01](../experiments/01-pd-ratio-sweep/), [03](../experiments/03-planner-demo/) |
-| **Large MoE / MLA** (DeepSeek-, Kimi-class) | Disaggregated; decode with wide EP + DP attention; MTP | SGLang or TensorRT-LLM | [experiments/05](../experiments/05-deepseek-layout/) | UNVALIDATED |
+| **Chat or agents on 2 × HGX H200**, any SLO | Aggregated replicas, KV-aware router | SGLang | [nemotron-3-nano aggregated](../tracks/nvidia-dynamo/production/nemotron-3-nano-h200/aggregated/) | Topology validated (tracks/nvidia-dynamo/studies/); operator path UNVALIDATED |
+| **Mixed ISL/OSL with a tight p99 ITL SLO**, 4+ nodes or TP2/TP4 workers, InfiniBand | Disaggregated, Planner-managed P:D | SGLang or vLLM | [nemotron-3-nano disaggregated](../tracks/nvidia-dynamo/production/nemotron-3-nano-h200/disaggregated/) | UNVALIDATED: [tracks/nvidia-dynamo/studies/planned/01](../tracks/nvidia-dynamo/studies/planned/01-pd-ratio-sweep/), [03](../tracks/nvidia-dynamo/studies/planned/03-planner-demo/) |
+| **Large MoE / MLA** (DeepSeek-, Kimi-class) | Disaggregated; decode with wide EP + DP attention; MTP | SGLang or TensorRT-LLM | [tracks/nvidia-dynamo/studies/planned/05](../tracks/nvidia-dynamo/studies/planned/05-deepseek-layout/) | UNVALIDATED |
 | **Frontier hybrid MoE** (Kimi K3, 2.8T MXFP4) | Aggregated TP8 per B300 node for bring-up; P/D with DSpark speculation at scale, ideally on NVL72 | vLLM or SGLang (K3 patched images) | [chapter 14](14-frontier-moe-techniques.md), `kimi-k3` in [configs/models.yaml](../configs/models.yaml) | UNVALIDATED |
 | **Agentic coding** (long, highly reused context; long diffs) | KV-aware routing and prefix caching first; P/D at scale; speculative decoding on | SGLang or vLLM | [chapter 15](15-workload-driven-design.md) | Design guidance |
 | **Reasoning / thinking models** (short prompt, 8–64K output) | Aggregated; speculative decoding on; decode KV capacity (FP8 KV, DCP) | any | [chapter 13](13-speculative-decoding.md) | Design guidance |
-| **Very long prompts, short answers** (256K RAG) | Aggregated; larger prefill chunks | SGLang | [deepseek-v4-pro aggregated](../deploy/overlays/production/deepseek-v4-pro-h200/aggregated/) | Validated on H200 (lab path) |
+| **Very long prompts, short answers** (256K RAG) | Aggregated; larger prefill chunks | SGLang | [deepseek-v4-pro aggregated](../tracks/nvidia-dynamo/production/deepseek-v4-pro-h200/aggregated/) | Validated on H200 (lab path) |
 | **Multi-turn heavy reuse** | Any of the above + KV tiers | engine with an offload connector | [chapter 08](08-kv-cache-and-offloading.md) | Roadmap |
-| **Kubernetes platform standardizing on Gateway API Inference Extension** | Per workload | vLLM | [B300 track 04](../deploy/sites/hgx-b300-2x8/04-llm-d-disagg/) | UNVALIDATED |
+| **Kubernetes platform standardizing on Gateway API Inference Extension** | Per workload | vLLM | [B300 track 04](../tracks/llm-d-redhat/paths/05-pd-disaggregation/hgx-b300-qwen3-coder-480b/) | UNVALIDATED |
 
 ## Anti-patterns
 
 | Anti-pattern | Why it hurts | Instead |
 | --- | --- | --- |
-| Disaggregating at a fixed 1P:1D on two nodes | Halves prefill capacity; aggregated was 1.62× and 5.5× faster on prefill-heavy traffic (results/) | Aggregated, or tune P:D with smaller workers |
+| Disaggregating at a fixed 1P:1D on two nodes | Halves prefill capacity; aggregated was 1.62× and 5.5× faster on prefill-heavy traffic (tracks/nvidia-dynamo/studies/) | Aggregated, or tune P:D with smaller workers |
 | Disaggregating without RDMA | KV transfer over TCP can exceed prefill time | Aggregated with KV-aware routing until the fabric is ready |
 | Round-robin load balancing across LLM workers | Throws away prefix-cache locality | KV-aware routing with active-request weighting ([troubleshooting](../reference/troubleshooting.md#kv-router-imbalance-152--120--120--120-requests-per-worker)) |
 | Sizing a small model at TP8 because the node has 8 GPUs | All-reduce cost without benefit; no room to tune P:D | TP from weights and KV; more, smaller workers |
@@ -96,8 +96,8 @@ minimum worker count to express it, with transfer intensity by model class
 | Deciding P/D before enabling KV-aware routing | A 90% prefix hit rate can move the workload out of the disaggregation window | Measure *R* with routing on ([chapter 15](15-workload-driven-design.md)) |
 | Judging by tokens/s alone | A configuration can deliver more tokens/s while missing the SLO | Goodput at p99 TTFT and ITL |
 | Mixing images or revisions between prefill and decode | Silent KV corruption or crashes | Pin by digest and revision; verify at startup (init container) |
-| A single latency number on the dashboard | Hides which pool to scale | TTFT, ITL, queue depth and transfer metrics per pool ([deploy/observability](../deploy/observability/)) |
+| A single latency number on the dashboard | Hides which pool to scale | TTFT, ITL, queue depth and transfer metrics per pool ([tracks/nvidia-dynamo/observability](../tracks/nvidia-dynamo/observability/)) |
 
 ---
 
-**Back to:** [Blueprint index](README.md) · **Evidence:** [chapter 12](12-results-and-reconciliation.md) · **Implement it:** [deploy/](../deploy/)
+**Back to:** [Blueprint index](README.md) · **Evidence:** [chapter 12](12-results-and-reconciliation.md) · **Implement it:** [tracks](../tracks/README.md)

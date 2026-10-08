@@ -1,4 +1,4 @@
-"""Consistency checks for the hand-written reference deployments in deploy/01-03.
+"""Consistency checks for the hand-written B300 reference deployments (tracks/nvidia-dynamo/sites/hgx-b300-2x8/01-03).
 
 The reference files are written for humans, so nothing regenerates them. These
 tests make sure they stay consistent with each other and with the flags that
@@ -15,25 +15,25 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SITE = dict(line.split('=', 1) for line in (ROOT / 'deploy/legacy-compose/cluster.env.example').read_text().splitlines()
+SITE = dict(line.split('=', 1) for line in (ROOT / 'tracks/nvidia-dynamo/sites/hgx-b300-2x8/compose/cluster.env.example').read_text().splitlines()
             if line and not line.startswith('#'))
 
 # (folder, engine, topology)
 TRACKS = [
-    ('deploy/sites/hgx-b300-2x8/01-aggregated/vllm', 'vllm', 'agg'),
-    ('deploy/sites/hgx-b300-2x8/01-aggregated/sglang', 'sglang', 'agg'),
-    ('deploy/sites/hgx-b300-2x8/02-dynamo-disagg-vllm', 'vllm', 'disagg'),
-    ('deploy/sites/hgx-b300-2x8/03-dynamo-disagg-sglang', 'sglang', 'disagg'),
+    ('tracks/nvidia-dynamo/sites/hgx-b300-2x8/01-aggregated/vllm', 'vllm', 'agg'),
+    ('tracks/nvidia-dynamo/sites/hgx-b300-2x8/01-aggregated/sglang', 'sglang', 'agg'),
+    ('tracks/nvidia-dynamo/sites/hgx-b300-2x8/02-dynamo-disagg-vllm', 'vllm', 'disagg'),
+    ('tracks/nvidia-dynamo/sites/hgx-b300-2x8/03-dynamo-disagg-sglang', 'sglang', 'disagg'),
 ]
 DISAGG_FLAGS = {'--disaggregation-mode', '--kv-transfer-config',
                 '--disaggregation-transfer-backend', '--disaggregation-bootstrap-port'}
 
 
 def platform_dir(folder, platform):
-    """Kubernetes manifests sit in the site folder; Compose files in deploy/legacy-compose."""
+    """Kubernetes manifests sit in the site folder; Compose files in its compose/ subfolder."""
     if platform == 'kubernetes':
         return ROOT / folder
-    return ROOT / folder.replace('deploy/sites/hgx-b300-2x8/', 'deploy/legacy-compose/')
+    return ROOT / folder.replace('tracks/nvidia-dynamo/sites/hgx-b300-2x8/', 'tracks/nvidia-dynamo/sites/hgx-b300-2x8/compose/')
 
 
 def interpolate(text):
@@ -102,8 +102,8 @@ def test_compose_and_kubernetes_launch_identical_engines(folder, engine, topolog
 
 @pytest.mark.parametrize('engine', ['vllm', 'sglang'])
 def test_aggregated_equals_disaggregated_minus_transfer_flags(engine):
-    agg = flags_from_script(compose_workers(f'deploy/sites/hgx-b300-2x8/01-aggregated/{engine}')[0]['command'][0])
-    dis = flags_from_script(compose_workers(f'deploy/sites/hgx-b300-2x8/0{2 if engine == "vllm" else 3}-dynamo-disagg-{engine}')[0]['command'][0])
+    agg = flags_from_script(compose_workers(f'tracks/nvidia-dynamo/sites/hgx-b300-2x8/01-aggregated/{engine}')[0]['command'][0])
+    dis = flags_from_script(compose_workers(f'tracks/nvidia-dynamo/sites/hgx-b300-2x8/0{2 if engine == "vllm" else 3}-dynamo-disagg-{engine}')[0]['command'][0])
     assert agg == {k: v for k, v in dis.items() if k not in DISAGG_FLAGS}
 
 
@@ -144,7 +144,7 @@ def test_control_plane_and_transfer_settings(folder, engine, topology):
 
 
 def test_no_reference_file_sets_the_broken_response_stream_host():
-    for path in [*ROOT.glob('deploy/**/*.yaml'), ROOT / 'tools/render.py']:
+    for path in [*ROOT.glob('tracks/**/*.yaml'), *ROOT.glob('platform/**/*.yaml'), ROOT / 'tools/render.py']:
         text = path.read_text()
         for line in text.splitlines():
             if 'DYN_TCP_RESPONSE_STREAM_HOST' in line:
@@ -168,6 +168,13 @@ def test_run_records_and_kustomizations(folder, engine, topology):
     assert namespaces == {yaml.safe_load((kdir / resources[0]).read_text())['metadata']['name']}
 
 
+def inside_completed_study(parts):
+    if 'studies' not in parts:
+        return False
+    i = parts.index('studies')
+    return len(parts) > i + 2 and parts[i + 1] != 'planned'
+
+
 def test_every_folder_has_a_readme():
     skip = {'.git', '.venv', '__pycache__', '.pytest_cache', 'build', 'results', 'router'}
     missing = [str(p.relative_to(ROOT)) for p in ROOT.rglob('*') if p.is_dir()
@@ -175,5 +182,7 @@ def test_every_folder_has_a_readme():
                and p.relative_to(ROOT).parts[:2] != ('datasets', 'generated')
                # as-measured/ is one documented record; its per-file folders need no README
                and 'as-measured' not in p.relative_to(ROOT).parts[:-1]
+               # a completed study's run, analysis and record folders are documented by the study README
+               and not inside_completed_study(p.relative_to(ROOT).parts)
                and not (p / 'README.md').exists()]
     assert not missing, missing

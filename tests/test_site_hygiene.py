@@ -71,9 +71,9 @@ def test_render_site_refuses_unfilled_env(tmp_path):
 
 
 def test_example_env_covers_every_manifest_placeholder():
-    example = (ROOT / 'deploy/site.env.example').read_text()
+    example = (ROOT / 'platform/site.env.example').read_text()
     keys = set(re.findall(r'^([A-Z][A-Z0-9_]+)=', example, re.M))
     used = set()
-    for path in (ROOT / 'deploy').rglob('*.yaml'):
+    for path in [*(ROOT / 'tracks').rglob('*.yaml'), *(ROOT / 'platform').rglob('*.yaml')]:
         used |= set(re.findall(r'<([A-Z][A-Z0-9_]+)>', path.read_text()))
     assert used <= keys, used - keys

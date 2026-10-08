@@ -166,17 +166,17 @@ def is_component(directory):
 
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    p.add_argument('--root', action='append', help='Folder to scan; repeatable. Default: deploy/ and experiments/.')
+    p.add_argument('--root', action='append', help='Folder to scan; repeatable. Default: tracks/ and platform/.')
     p.add_argument('--cache-dir', default=str(ROOT / 'build/schema-cache'))
     a = p.parse_args(argv)
     registry = Registry(Path(a.cache_dir))
-    roots = [Path(r) for r in (a.root or [ROOT / 'deploy', ROOT / 'experiments'])]
+    roots = [Path(r) for r in (a.root or [ROOT / 'tracks', ROOT / 'platform'])]
     roots = [r for r in roots if r.exists()]
     raw_count, built_count, errors = 0, 0, []
     for path in sorted(p for r in roots for p in r.rglob('*.yaml')):
-        # Patch fragments and Helm values are not standalone objects; they are
+        # Patch fragments and Helm values (including llm-d router arm-*.yaml) are not standalone objects; they are
         # validated through `kustomize build` or by Helm.
-        if (path.name in SKIP_FILES or path.name.endswith('values.yaml') or path.name.startswith(('patch-', 'values', 'kustomization')) or 'patches' in path.parts
+        if (path.name in SKIP_FILES or path.name.endswith('values.yaml') or path.name.startswith(('patch-', 'values', 'kustomization', 'arm-')) or 'patches' in path.parts
                 or 'helm' in path.parts):
             continue
         n, e = validate_objects(registry, yaml.safe_load_all(as_rendered(path.read_text())), path.relative_to(ROOT))

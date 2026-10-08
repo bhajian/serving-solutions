@@ -15,18 +15,18 @@ ranking.
 | | What you get from this repository | What you still own |
 | --- | --- | --- |
 | Evidence | Three studies with pinned images, request hashes, cache-reset acknowledgements and repeats; raw evidence in release archives | Measurements on your own traffic, hardware and SLOs |
-| Next measurements | [experiments/](../experiments/) prepared to close the gaps listed below | Running them and deciding from goodput at your SLO |
+| Next measurements | [tracks/nvidia-dynamo/studies/planned/](../tracks/nvidia-dynamo/studies/planned/) prepared to close the gaps listed below | Running them and deciding from goodput at your SLO |
 
 ## The three studies
 
-All three ran on the [validated H200 site](../deploy/sites/nebius-h200-2x8/), with
+All three ran on the [validated H200 site](../tracks/nvidia-dynamo/sites/nebius-h200-2x8/), with
 in-cluster load generation and worker caches flushed before every measured run.
 
 | Study | Workload | Layouts (16 GPUs) | Runs | Result |
 | --- | --- | --- | --- | --- |
-| [DeepSeek V4 Pro 256K](../results/deepseek-v4-pro-256k-comparison/) | 8 sessions × 3 turns, ~256K input, concurrency 4 | 2 × TP8 aggregated vs 1 × TP8 prefill + 1 × TP8 decode | 1 per layout | Aggregated 141.45 s vs disaggregated 782.50 s (5.5×). Aggregated follow-ups reused their prefixes; disaggregated follow-ups reprocessed them |
-| [Nemotron 3 Nano 128K](../results/nemotron-3-nano-128k-comparison/) | 32 sessions × 3 turns, 128K input, ≤ 256 output, concurrency 4 | 2 × TP8 aggregated vs 1 × TP8 prefill + 1 × TP8 decode | 3 per layout, 576 requests | Mean run 65.09 s vs 105.48 s (1.62×). Median TTFT 0.110 s vs 2.503 s; median TPOT 4.35 ms vs 4.64 ms |
-| [Nemotron 3 Nano 8K/128K](../results/nemotron-3-nano-8k-128k-comparison/) | 8K input, exactly 131,072 output tokens, one wave at the KV limit | 4 × TP4 aggregated (512 in flight) vs 1 × TP4 prefill + 3 × TP4 decode (384 in flight) | 3 per layout, 2,688 requests | 34,677 vs 25,852 output tokens/s (1.34×). TPOT 14.51 ms vs 14.15 ms; worst ITL 40.4 s vs 1.1 s; TTFT p50 11.0 s vs 36.5 s |
+| [DeepSeek V4 Pro 256K](../tracks/nvidia-dynamo/studies/deepseek-v4-pro-256k-comparison/) | 8 sessions × 3 turns, ~256K input, concurrency 4 | 2 × TP8 aggregated vs 1 × TP8 prefill + 1 × TP8 decode | 1 per layout | Aggregated 141.45 s vs disaggregated 782.50 s (5.5×). Aggregated follow-ups reused their prefixes; disaggregated follow-ups reprocessed them |
+| [Nemotron 3 Nano 128K](../tracks/nvidia-dynamo/studies/nemotron-3-nano-128k-comparison/) | 32 sessions × 3 turns, 128K input, ≤ 256 output, concurrency 4 | 2 × TP8 aggregated vs 1 × TP8 prefill + 1 × TP8 decode | 3 per layout, 576 requests | Mean run 65.09 s vs 105.48 s (1.62×). Median TTFT 0.110 s vs 2.503 s; median TPOT 4.35 ms vs 4.64 ms |
+| [Nemotron 3 Nano 8K/128K](../tracks/nvidia-dynamo/studies/nemotron-3-nano-8k-128k-comparison/) | 8K input, exactly 131,072 output tokens, one wave at the KV limit | 4 × TP4 aggregated (512 in flight) vs 1 × TP4 prefill + 3 × TP4 decode (384 in flight) | 3 per layout, 2,688 requests | 34,677 vs 25,852 output tokens/s (1.34×). TPOT 14.51 ms vs 14.15 ms; worst ITL 40.4 s vs 1.1 s; TTFT p50 11.0 s vs 36.5 s |
 
 ## Why disaggregation lost each one
 
@@ -37,7 +37,7 @@ follow-up turns did not reuse their cached 256K-token prefixes: each turn recomp
 session's long prefix instead of computing it once. The cause is undiagnosed. Decode-side
 radix caching is off by default in SGLang PD mode
 (`--disaggregation-decode-enable-radix-cache`), and the KV router places follow-ups by
-prefill-side overlap. [Experiment 05](../experiments/05-deepseek-layout/) tests both.
+prefill-side overlap. [Experiment 05](../tracks/nvidia-dynamo/studies/planned/05-deepseek-layout/) tests both.
 This is a single run per layout.
 
 **Nemotron 3 Nano, 128K input / 256 output.** The workload is again prefill-dominated,
@@ -78,7 +78,7 @@ configurations this site did not test:
 
 | Their configuration | This site |
 | --- | --- |
-| Large MoE models (DeepSeek-R1/V3-class) where decode benefits from **wide expert parallelism** and DP attention across many GPUs | Dense-attention TP layouts only; DP attention + EP is [experiment 05](../experiments/05-deepseek-layout/) |
+| Large MoE models (DeepSeek-R1/V3-class) where decode benefits from **wide expert parallelism** and DP attention across many GPUs | Dense-attention TP layouts only; DP attention + EP is [experiment 05](../tracks/nvidia-dynamo/studies/planned/05-deepseek-layout/) |
 | **Planner-managed or tuned P:D ratios** across many nodes | Fixed 1P:1D and 1P:3D on two nodes |
 | **NVLink-domain fabrics** (GB200/GB300 NVL72) for KV transfer and expert all-to-all | Two HGX nodes over InfiniBand |
 | Realistic ISL/OSL mixes where both phases are substantial, judged by **goodput at an SLO** | Synthetic extremes (prefill-only or decode-only), judged by wall time and tokens/s |
@@ -93,10 +93,10 @@ traffic, and when the fabric makes the handoff cheap.
 
 | Gap | Experiment |
 | --- | --- |
-| Realistic ISL/OSL under open-loop arrivals, goodput at p99 TTFT 2 s / ITL 40 ms, P:D ratios 1:3 to 2:6 with TP2/TP4 workers | [01-pd-ratio-sweep](../experiments/01-pd-ratio-sweep/) |
-| KV-router balance and prefix hit rate | [02-kv-router](../experiments/02-kv-router/) |
-| P:D chosen by the Planner as load changes | [03-planner-demo](../experiments/03-planner-demo/) |
-| DP attention + EP and MTP for DeepSeek V4 Pro; PD prefix reuse | [05-deepseek-layout](../experiments/05-deepseek-layout/) |
+| Realistic ISL/OSL under open-loop arrivals, goodput at p99 TTFT 2 s / ITL 40 ms, P:D ratios 1:3 to 2:6 with TP2/TP4 workers | [01-pd-ratio-sweep](../tracks/nvidia-dynamo/studies/planned/01-pd-ratio-sweep/) |
+| KV-router balance and prefix hit rate | [02-kv-router](../tracks/nvidia-dynamo/studies/planned/02-kv-router/) |
+| P:D chosen by the Planner as load changes | [03-planner-demo](../tracks/nvidia-dynamo/studies/planned/03-planner-demo/) |
+| DP attention + EP and MTP for DeepSeek V4 Pro; PD prefix reuse | [05-deepseek-layout](../tracks/nvidia-dynamo/studies/planned/05-deepseek-layout/) |
 
 ![When disaggregation wins, with the three H200 studies placed on it](../assets/diagrams/png/when-disaggregation-wins.png)
 

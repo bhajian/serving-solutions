@@ -4,7 +4,7 @@
     python -m benchmarks.loadgen --base-url http://<frontend>:8000/v1 --model <id> \\
       --technology dynamo-disagg-k8s --dataset sessions.jsonl --max-model-len 262144 \\
       --arrival poisson --rps 4 --duration 600 --slo-ttft-ms 2000 --slo-itl-ms 40 \\
-      --gpu-count 16 --gpu-hour-usd 0 --results results/pd-sweep
+      --gpu-count 16 --gpu-hour-usd 0 --results tracks/nvidia-dynamo/studies/pd-sweep
 
 Arrival processes:
   poisson   sessions start at exponential inter-arrival times with mean 1/rps (open loop)

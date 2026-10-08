@@ -1,0 +1,174 @@
+# DeepSeek V4 Pro 0813 on one H200 node (TP8) with the Red Hat AI Inference Server
+# vLLM image, as the model server behind the llm-d optimized-baseline router.
+#
+# Flags follow the vLLM recipe's Hopper lane (recipes/models/deepseek-ai/DeepSeek-V4-Pro.yaml):
+# - no --enable-expert-parallel: MXFP4 Marlin + EP crashes on Hopper (vllm#47769)
+# - no --speculative-config: DSpark on SM90 sparse attention needs vLLM 0.29
+# - MXFP4 experts run on Marlin, the only SM90 backend, selected automatically
+# Headless service: stable per-replica DNS (deepseek-v4-pro-N.deepseek-v4-pro) for
+# metrics scraping and prefix-cache resets. Clients go through the router instead.
+apiVersion: v1
+kind: Service
+metadata:
+  name: deepseek-v4-pro
+spec:
+  clusterIP: None
+  selector:
+    llm-d.ai/role: decode
+  ports:
+  - name: modelserver
+    port: 8000
+---
+# One replica per H200 node. Each replica owns a 1500Gi RWO disk holding its own copy
+# of the checkpoint (claims weights-deepseek-v4-pro-N, pre-created and pre-filled).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: deepseek-v4-pro
+  labels:
+    llm-d.ai/role: decode
+spec:
+  serviceName: deepseek-v4-pro
+  replicas: 4
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      llm-d.ai/role: decode
+  template:
+    metadata:
+      labels:
+        llm-d.ai/role: decode
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 120
+      imagePullSecrets:
+      - name: rh-registry
+      securityContext:
+        runAsUser: 1001     # the image's user (1001:0)
+        runAsGroup: 0
+        runAsNonRoot: true
+      initContainers:
+      # The checkpoint was downloaded as root; fail fast if UID 1001 cannot read it or
+      # if the disk holds a different revision.
+      - name: verify-weights
+        image: busybox:1.37.0@sha256:bdf57e528e45e4433820e045b29b4597825a1c9e38353532d90a01445013f82e
+        command:
+        - sh
+        - -c
+        - |
+          set -e
+          got=$(cat /model/DEPLOYED_REVISION)
+          [ "$got" = "$REVISION" ] || { echo "weights revision $got != pinned $REVISION"; exit 1; }
+          unreadable=$(find /model -maxdepth 1 \( -name '*.safetensors' -o -name '*.json' -o -name '*.py' \) ! -perm -o=r | wc -l)
+          [ "$unreadable" = 0 ] || { echo "$unreadable checkpoint files are not world-readable"; exit 1; }
+          echo "weights OK: $(ls /model/*.safetensors | wc -l) shards at revision $got"
+        env:
+        - name: REVISION
+          value: 72e1d3230f6c080a530b0a1d46f8eb4602340597
+        volumeMounts:
+        - name: weights
+          mountPath: /model
+          readOnly: true
+      containers:
+      - name: modelserver
+        image: registry.redhat.io/rhaii-fast/vllm-cuda-rhel9:3.6.0-fast.1@sha256:5f1fb3f23bee2031abffd2216fac5e6458836facc06dc97029aac9a03120195f
+        command: ["python3", "-m", "vllm.entrypoints.openai.api_server"]
+        args:
+        - --model=/model
+        - --served-model-name=deepseek-ai/DeepSeek-V4-Pro-0813
+        - --port=8000
+        - --tensor-parallel-size=8
+        - --trust-remote-code
+        - --kv-cache-dtype=fp8
+        - --block-size=256
+        - --tokenizer-mode=deepseek_v4
+        - --reasoning-parser=deepseek_v4
+        - --tool-call-parser=deepseek_v4
+        - --enable-auto-tool-choice
+        - --enable-prefix-caching
+        - --enable-prompt-tokens-details   # report cached_tokens per request
+        - --max-model-len=262144     # 256K-token prompts plus output
+        - --max-num-seqs=16
+        - --gpu-memory-utilization=0.95
+        - --no-enable-flashinfer-autotune
+        - '--compilation-config={"mode":0,"cudagraph_mode":"FULL_DECODE_ONLY"}'
+        - --disable-access-log-for-endpoints=/health,/metrics,/v1/models
+        env:
+        - name: HF_HUB_OFFLINE
+          value: '1'
+        - name: TRANSFORMERS_OFFLINE
+          value: '1'
+        - name: VLLM_SERVER_DEV_MODE  # exposes POST /reset_prefix_cache for benchmark resets (ClusterIP only)
+          value: '1'
+        - name: DO_NOT_TRACK          # the image reports usage stats to console.redhat.com by default
+          value: '1'
+        - name: HF_HOME
+          value: /cache/hf
+        - name: VLLM_CACHE_ROOT
+          value: /cache/vllm
+        - name: TRITON_CACHE_DIR
+          value: /cache/triton
+        - name: XDG_CACHE_HOME
+          value: /cache/xdg
+        - name: TORCH_EXTENSIONS_DIR
+          value: /cache/torch_extensions
+        ports:
+        - name: modelserver
+          containerPort: 8000
+          protocol: TCP
+        resources:
+          requests:
+            cpu: '32'
+            memory: 256Gi
+            nvidia.com/gpu: '8'
+          limits:
+            memory: 1300Gi    # page cache of the ~893 GB checkpoint counts against the cgroup during load
+            nvidia.com/gpu: '8'
+        securityContext:
+          allowPrivilegeEscalation: false
+        # Cold load of ~893 GB from the network disk plus warmup: allow up to 2.5 h.
+        startupProbe:
+          httpGet:
+            path: /v1/models
+            port: modelserver
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 300
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: modelserver
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 6
+        readinessProbe:
+          httpGet:
+            path: /v1/models
+            port: modelserver
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: weights
+          mountPath: /model
+          readOnly: true
+        - name: cache
+          mountPath: /cache
+        - name: shm
+          mountPath: /dev/shm
+      volumes:
+      - name: cache
+        emptyDir: {}
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi
+  volumeClaimTemplates:
+  - metadata:
+      name: weights
+    spec:
+      accessModes: [ReadWriteOnce]
+      storageClassName: compute-csi-default-sc
+      resources:
+        requests:
+          storage: 1500Gi

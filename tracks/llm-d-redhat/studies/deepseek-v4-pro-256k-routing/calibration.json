@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-08",
+  "engine_kv_cache_tokens_per_replica": 695506,
+  "engine_max_concurrency_at_262144": 2.65,
+  "vllm_cache_config_info": {"block_size": "4", "num_gpu_blocks": "18710", "kv_cache_size_tokens": "63299", "prefix_match_unit": "None"},
+  "cold_prefill_256k": [
+    {"replica": 0, "session": "chatbot-2562026-31", "ttft_s": 41.0, "prompt_tokens": 256000, "prompt_bytes": 1072397, "prefill_tokens_per_s": 6244, "router_units_per_s": 6539},
+    {"replica": 2, "session": "chatbot-2562026-30", "ttft_s": 41.63, "prompt_tokens": 256000, "prompt_bytes": 898038, "prefill_tokens_per_s": 6149, "router_units_per_s": 5393}
+  ]
+}

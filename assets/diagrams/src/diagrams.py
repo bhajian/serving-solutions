@@ -12,7 +12,7 @@ Element types:
 DIAGRAMS = {}
 
 # ----------------------------------------------------------------------------- 1. serving stack
-# Status of each part: 'v' validated on H200 (results/), 'r' manifests or reference, not yet run,
+# Status of each part: 'v' validated on H200 (recorded studies), 'r' manifests or reference, not yet run,
 # 'p' roadmap (ROADMAP.md), '' generic. Draws as accent, plain, ghost and soft boxes.
 _STYLE = {'v': 'accent', 'r': 'plain', 'p': 'ghost', '': 'soft'}
 _X0, _X1, _GAP = 300, 1560, 14
@@ -85,7 +85,7 @@ DIAGRAMS['serving-stack'] = {
               *({**t, 'y': t['y'] + 16} for t in _texts),
               {'x': _X0 + 20, 'y': 782, 'text': 'shared techniques: continuous batching · paged KV cache · chunked prefill · prefix caching · speculative decoding',
                'size': 11, 'color': 'muted'},
-              {'x': 1090, 'y': 1404, 'text': 'Status from results/ and ROADMAP.md.', 'size': 11, 'color': 'muted'}],
+              {'x': 1090, 'y': 1404, 'text': 'Status from the recorded studies and ROADMAP.md.', 'size': 11, 'color': 'muted'}],
 }
 
 # ----------------------------------------------------------------------------- 1b. control planes
@@ -119,7 +119,7 @@ DIAGRAMS['control-planes'] = {
         {'points': [(1050, 430), (1030, 430)], 'style': 'accent'},
         {'points': [(1040, 230), (1040, 260)]},
     ],
-    'texts': [{'x': 40, 'y': 704, 'text': 'In this repository: Dynamo graphs and lab manifests are measured on H200 (results/);\nllm-d manifests exist for the B300 reference topology (deploy/sites/hgx-b300-2x8/04-llm-d-disagg).', 'size': 11, 'color': 'muted'}],
+    'texts': [{'x': 40, 'y': 704, 'text': 'In this repository: Dynamo graphs and lab manifests are measured on H200 (recorded studies);\nllm-d manifests exist for the B300 reference topology (llm-d track, path 05).', 'size': 11, 'color': 'muted'}],
 }
 
 # ----------------------------------------------------------------------------- 2. aggregated vs disaggregated
@@ -158,7 +158,7 @@ DIAGRAMS['agg-vs-disagg'] = {
         {'points': [(1213, 430), (1213, 500), (750, 500), (750, 178), (780, 178)], 'label': '4 stream tokens', 'label_at': (980, 515), 'dashed': True},
     ],
     'texts': [
-        {'x': 100, 'y': 560, 'text': 'Measured, 8K in / 128K out, 4 × TP4 (results/):', 'size': 11, 'weight': 'bold'},
+        {'x': 100, 'y': 560, 'text': 'Measured, 8K in / 128K out, 4 × TP4 (recorded studies):', 'size': 11, 'weight': 'bold'},
         {'x': 100, 'y': 586, 'text': 'prefill chunks stalled running streams for up to 13 s;\nworst inter-token gap 40.4 s; highest output tokens/s.', 'size': 11, 'color': 'muted'},
         {'x': 780, 'y': 445, 'text': 'NIXL over UCX: GPUDirect RDMA on InfiniBand\n(cuda_ipc / NVLink when both workers share a node)', 'size': 10.5, 'color': 'accent_ink'},
         {'x': 780, 'y': 560, 'text': 'Measured, 8K in / 128K out, 1 × TP4 prefill + 3 × TP4 decode:', 'size': 11, 'weight': 'bold'},
@@ -172,7 +172,7 @@ DIAGRAMS['agg-vs-disagg']['size'] = (1400, 700)
 # ----------------------------------------------------------------------------- 3. production topology
 DIAGRAMS['production-topology'] = {
     'size': (1400, 870), 'title': 'Dynamo production topology on Kubernetes',
-    'subtitle': 'What deploy/overlays/production creates for one model. Arrows show requests (solid), KV transfer (green) and control (dashed).',
+    'subtitle': 'What the Dynamo production overlay creates for one model. Arrows show requests (solid), KV transfer (green) and control (dashed).',
     'groups': [
         {'x': 330, 'y': 100, 'w': 760, 'h': 610, 'label': 'Namespace per model · one DynamoGraphDeployment', 'style': 'ghost'},
         {'x': 360, 'y': 290, 'w': 330, 'h': 230, 'label': 'Prefill pool', 'style': 'ghost'},
@@ -223,8 +223,8 @@ DIAGRAMS['decision-flow'] = {
         _q(40, 560, 660, 'Is there an RDMA fabric (InfiniBand or RoCE)\nor an NVLink domain for KV transfer?'),
         {'x': 40, 'y': 690, 'w': 660, 'h': 64, 'label': 'Aggregated: KV transfer over TCP would cost more than it saves', 'style': 'soft', 'size': 11.5},
         {'x': 820, 'y': 200, 'w': 540, 'h': 194, 'label': 'Aggregated replicas + KV-aware router', 'sub':
-         'simplest to run, best TTFT at low load,\nall GPUs prefill and decode.\nTune chunked prefill to bound decode stalls.\nOn 2 × HGX H200 with TP8 workers this is\nusually the right answer (results/).', 'style': 'soft'},
-        {'x': 820, 'y': 560, 'w': 540, 'h': 100, 'label': 'Disaggregated, Planner-managed P:D', 'sub': 'prefill and decode pools sized for the SLO;\nconfirm with a goodput sweep (experiments/01)', 'style': 'accent'},
+         'simplest to run, best TTFT at low load,\nall GPUs prefill and decode.\nTune chunked prefill to bound decode stalls.\nOn 2 × HGX H200 with TP8 workers this is\nusually the right answer (recorded studies).', 'style': 'soft'},
+        {'x': 820, 'y': 560, 'w': 540, 'h': 100, 'label': 'Disaggregated, Planner-managed P:D', 'sub': 'prefill and decode pools sized for the SLO;\nconfirm with a goodput sweep (planned study 01)', 'style': 'accent'},
         _q(820, 700, 540, 'MoE or MLA model (DeepSeek-class, Nemotron Ultra)?'),
         {'x': 820, 'y': 814, 'w': 540, 'h': 76, 'label': 'Per-phase parallelism', 'sub': 'prefill: TP2–TP4 (+EP) · decode: wide EP + DP attention, MTP', 'style': 'accent'},
         {'x': 40, 'y': 830, 'w': 660, 'h': 60, 'label': 'Engine: SGLang · vLLM · TensorRT-LLM, by model support and features', 'style': 'plain', 'size': 11.5},
@@ -252,7 +252,7 @@ DIAGRAMS['when-disaggregation-wins'] = {
     'boxes': [
         {'x': 160, 'y': 120, 'w': 360, 'h': 640, 'align': 'top', 'label': 'Low load', 'sub': 'room in every batch: aggregated has\nthe best TTFT and the fewest moving parts', 'style': 'soft'},
         {'x': 530, 'y': 120, 'w': 820, 'h': 200, 'align': 'top', 'label': 'High load, prefill-dominated', 'sub': 'aggregated prefills on every GPU;\na fixed prefill pool caps prefill throughput', 'style': 'shade'},
-        {'x': 530, 'y': 330, 'w': 820, 'h': 220, 'align': 'top', 'label': 'High load, both phases substantial', 'sub': 'disaggregation can win on goodput at a tight ITL SLO when P:D is tunable\nUNVALIDATED here: experiments/01-pd-ratio-sweep', 'style': 'accent'},
+        {'x': 530, 'y': 330, 'w': 820, 'h': 220, 'align': 'top', 'label': 'High load, both phases substantial', 'sub': 'disaggregation can win on goodput at a tight ITL SLO when P:D is tunable\nUNVALIDATED here: planned study 01-pd-ratio-sweep', 'style': 'accent'},
         {'x': 530, 'y': 560, 'w': 820, 'h': 200, 'align': 'top', 'label': 'High load, decode-dominated', 'sub': 'aggregated wins on tokens/s; disaggregated removes prefill stalls\nfrom the tail ITL. Which matters depends on the SLO.', 'style': 'shade'},
     ],
     'arrows': [
@@ -280,7 +280,7 @@ DIAGRAMS['pd-parallelism'] = {
     ],
     'boxes': [
         {'x': 70, 'y': 150, 'w': 500, 'h': 96, 'label': 'Small TP per worker (TP2–TP4)', 'sub': 'more workers prefill in parallel; long prompts\nsplit across fewer GPUs per worker', 'style': 'soft'},
-        {'x': 70, 'y': 266, 'w': 500, 'h': 96, 'label': 'Chunked prefill', 'sub': '4K–16K token chunks; larger chunks lower TTFT\nfor 128K+ prompts (experiments/07)', 'style': 'soft'},
+        {'x': 70, 'y': 266, 'w': 500, 'h': 96, 'label': 'Chunked prefill', 'sub': '4K–16K token chunks; larger chunks lower TTFT\nfor 128K+ prompts (planned study 07)', 'style': 'soft'},
         {'x': 70, 'y': 382, 'w': 500, 'h': 96, 'label': 'Expert parallelism for MoE (optional)', 'sub': 'experts spread across the prefill GPUs', 'style': 'soft'},
         {'x': 830, 'y': 150, 'w': 500, 'h': 96, 'label': 'Wide expert parallelism (EP)', 'sub': 'each GPU holds a slice of the experts;\nall-to-all dispatch every decode step', 'style': 'accent'},
         {'x': 830, 'y': 266, 'w': 500, 'h': 96, 'label': 'DP attention for MLA', 'sub': 'each rank keeps whole sequences\' latent KV:\nno KV duplication across TP ranks', 'style': 'accent'},
@@ -294,7 +294,7 @@ DIAGRAMS['pd-parallelism'] = {
     ],
     'texts': [
         {'x': 40, 'y': 650, 'text': 'The Dynamo Planner adjusts prefill and decode replicas within one GPU budget (max_gpu_budget); it has no per-role cap in 1.4.0.', 'size': 11, 'color': 'muted'},
-        {'x': 40, 'y': 680, 'text': 'Measured on the H200 site: TP8 and TP4 layouts only (results/). DP attention + EP and MTP for DeepSeek V4 Pro are experiment 05.', 'size': 11, 'color': 'muted'},
+        {'x': 40, 'y': 680, 'text': 'Measured on the H200 site: TP8 and TP4 layouts only (recorded studies). DP attention + EP and MTP for DeepSeek V4 Pro are experiment 05.', 'size': 11, 'color': 'muted'},
         {'x': 40, 'y': 710, 'text': 'Do not size a 30B-A3B model like Nemotron 3 Nano at TP8: its weights fit on one GPU; TP2–TP4 workers leave room to tune P:D.', 'size': 11, 'color': 'muted'},
     ],
 }
@@ -314,7 +314,7 @@ def _node(x, y, name, gpu, extra_box, hca0=0):
 
 DIAGRAMS['h200-site'] = {
     'size': (1400, 780), 'title': 'Validated site: 2 × HGX H200 on managed Kubernetes',
-    'subtitle': 'Every measured result in results/ comes from this site. Workers used hostNetwork in the lab; the production overlay uses the RDMA device plugin instead.',
+    'subtitle': 'Every measured result in the recorded studies comes from this site. Workers used hostNetwork in the lab; the production overlay uses the RDMA device plugin instead.',
     'groups': [
         {'x': 40, 'y': 110, 'w': 560, 'h': 420, 'label': 'Node A', 'style': 'ghost', 'badge': 'VALIDATED', 'badge_color': 'accent_ink'},
         {'x': 800, 'y': 110, 'w': 560, 'h': 420, 'label': 'Node B', 'style': 'ghost', 'badge': 'VALIDATED', 'badge_color': 'accent_ink'},
@@ -337,7 +337,7 @@ DIAGRAMS['h200-site'] = {
 
 DIAGRAMS['b300-reference'] = {
     'size': (1400, 780), 'title': 'Reference topology: 2 × HGX B300 (UNVALIDATED)',
-    'subtitle': 'Manifests for tracks 01–04 exist and pass offline tests. No run on this hardware is recorded; validation is experiments/09.',
+    'subtitle': 'Manifests for tracks 01–04 exist and pass offline tests. No run on this hardware is recorded; validation is planned study 09.',
     'groups': [
         {'x': 40, 'y': 110, 'w': 560, 'h': 420, 'label': 'Node A', 'style': 'ghost', 'badge': 'UNVALIDATED'},
         {'x': 800, 'y': 110, 'w': 560, 'h': 420, 'label': 'Node B', 'style': 'ghost', 'badge': 'UNVALIDATED'},

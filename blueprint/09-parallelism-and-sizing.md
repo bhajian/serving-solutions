@@ -42,9 +42,9 @@ concurrent sequences  ≈ max resident tokens / average (ISL + OSL)
 fits on one 141 GB H200. TP8 was used in the 128K study only to match the 16-GPU, two-worker
 comparison; it is **not** a sizing recommendation. At TP4 the automatically sized KV pool held
 19.6M tokens per worker, enough for 140 requests of 139K tokens
-([8K/128K study](../deploy/sites/nebius-h200-2x8/nemotron-3-nano/BENCHMARK-8K-128K.md)). Size this
+([8K/128K study](../tracks/nvidia-dynamo/studies/nemotron-3-nano-8k-128k-comparison/REPORT.md)). Size this
 model with TP1–TP4 workers, chosen so the P:D ratio can follow the traffic
-([experiments/01](../experiments/01-pd-ratio-sweep/)).
+([tracks/nvidia-dynamo/studies/planned/01](../tracks/nvidia-dynamo/studies/planned/01-pd-ratio-sweep/)).
 
 *Design example (MLA).* For DeepSeek-class MLA models, use DP attention with wide EP on
 decode instead of TP, so each rank holds whole sequences' latent KV and experts are spread
@@ -90,7 +90,7 @@ Add headroom (N+1 per pool) for failures and bursts. Re-measure Tp and Sd whenev
 1. Characterize the traffic: λ over the day, ISL/OSL distributions, prefix reuse. Use redacted production traces if possible.
 2. Choose the model precision and the context limit.
 3. Pick parallelism per phase from the table above and the NVLink domain size ([chapter 07](07-hardware-network-storage.md)).
-4. Deploy one prefill and one decode worker ([deploy/02](../deploy/sites/hgx-b300-2x8/02-dynamo-disagg-vllm/)) and measure Tp and Sd with [benchmarks/](../benchmarks/) at the target SLOs.
+4. Deploy one prefill and one decode worker ([B300 track 02](../tracks/nvidia-dynamo/sites/hgx-b300-2x8/02-dynamo-disagg-vllm/)) and measure Tp and Sd with [benchmarks/](../benchmarks/) at the target SLOs.
 5. Compute N_P and N_D, and add headroom.
 6. In production, let an SLO-driven autoscaler (Dynamo Planner, llm-d variant autoscaler) track the ratio as traffic shifts.
 

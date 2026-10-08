@@ -7,7 +7,7 @@ import yaml
 from tests.test_operator_values import paths
 
 ROOT = Path(__file__).resolve().parents[1]
-OPS = ROOT / 'deploy/overlays/production/operators'
+OPS = ROOT / 'platform/operators'
 CHARTS = {'gpu-operator-values.yaml': 'gpu-operator-v26.7.1-values.yaml',
           'network-operator-values.yaml': 'network-operator-v26.7.0-values.yaml'}
 

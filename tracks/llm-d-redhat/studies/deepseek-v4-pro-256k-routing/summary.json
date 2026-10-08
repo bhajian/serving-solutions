@@ -1,0 +1,124 @@
+[
+  {
+    "label": "b1",
+    "arm": "optimized-baseline",
+    "run_id": "20261008T171244Z-b73910db",
+    "concurrency": 8,
+    "dataset_sha256": "66880756c3dcd5d55db6078a3b1a2442cd22388f1690310f11fd3c25f18f7033",
+    "requests": 96,
+    "failed": 0,
+    "wall_s": 581.1998443480006,
+    "output_tok_s": 15.696838340062408,
+    "ttft_first_turn": {
+      "n": 32,
+      "p50_s": 31.04,
+      "p90_s": 78.43,
+      "mean_s": 40.71,
+      "max_s": 82.24
+    },
+    "ttft_follow_up": {
+      "n": 64,
+      "p50_s": 27.57,
+      "p90_s": 54.21,
+      "mean_s": 24.25,
+      "max_s": 78.59
+    },
+    "follow_up_cache_hits": "30/64",
+    "follow_up_hit_share": 0.469,
+    "prompt_tokens": 24579120,
+    "cached_tokens": 7680000,
+    "re_prefilled_tokens": 16899120,
+    "per_replica": [
+      {
+        "replica": 0,
+        "requests": 21,
+        "prompt_tokens": 5376630,
+        "prefix_hit_rate": 0.19
+      },
+      {
+        "replica": 1,
+        "requests": 21,
+        "prompt_tokens": 5376700,
+        "prefix_hit_rate": 0.238
+      },
+      {
+        "replica": 2,
+        "requests": 31,
+        "prompt_tokens": 7937084,
+        "prefix_hit_rate": 0.484
+      },
+      {
+        "replica": 3,
+        "requests": 23,
+        "prompt_tokens": 5888706,
+        "prefix_hit_rate": 0.261
+      }
+    ],
+    "router_decisions": {
+      "load_override": 1,
+      "no_match": 32,
+      "sticky": 63
+    }
+  },
+  {
+    "label": "t1",
+    "arm": "optimized-baseline-tuned",
+    "run_id": "20261008T172531Z-57b72981",
+    "concurrency": 8,
+    "dataset_sha256": "66880756c3dcd5d55db6078a3b1a2442cd22388f1690310f11fd3c25f18f7033",
+    "requests": 96,
+    "failed": 0,
+    "wall_s": 563.6776223650013,
+    "output_tok_s": 15.590471665574578,
+    "ttft_first_turn": {
+      "n": 32,
+      "p50_s": 28.08,
+      "p90_s": 54.21,
+      "mean_s": 37.35,
+      "max_s": 54.8
+    },
+    "ttft_follow_up": {
+      "n": 64,
+      "p50_s": 1.07,
+      "p90_s": 42.06,
+      "mean_s": 16.62,
+      "max_s": 53.74
+    },
+    "follow_up_cache_hits": "34/64",
+    "follow_up_hit_share": 0.531,
+    "prompt_tokens": 24579120,
+    "cached_tokens": 8704000,
+    "re_prefilled_tokens": 15875120,
+    "per_replica": [
+      {
+        "replica": 0,
+        "requests": 26,
+        "prompt_tokens": 6656930,
+        "prefix_hit_rate": 0.231
+      },
+      {
+        "replica": 1,
+        "requests": 24,
+        "prompt_tokens": 6144745,
+        "prefix_hit_rate": 0.458
+      },
+      {
+        "replica": 2,
+        "requests": 18,
+        "prompt_tokens": 4608620,
+        "prefix_hit_rate": 0.111
+      },
+      {
+        "replica": 3,
+        "requests": 28,
+        "prompt_tokens": 7168825,
+        "prefix_hit_rate": 0.536
+      }
+    ],
+    "router_decisions": {
+      "load_override": 1,
+      "no_match": 34,
+      "sticky": 61
+    }
+  }
+]

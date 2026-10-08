@@ -1,0 +1,70 @@
+{
+  "base_url": "http://llmd-epp.llm-d.svc.cluster.local:80/v1",
+  "model": "deepseek-ai/DeepSeek-V4-Pro-0813",
+  "technology": "llmd-k8s",
+  "backend": "vllm",
+  "dataset": "datasets/generated/deepseek-v4-pro-chatbot-256k-32.jsonl",
+  "deployment": {
+    "technology": "llmd-k8s",
+    "topology": "aggregated",
+    "backend": "vllm",
+    "router": "llm-d-router-standalone v0.11.0, scheduler profile: optimized-baseline-tuned",
+    "image": "registry.redhat.io/rhaii-fast/vllm-cuda-rhel9:3.6.0-fast.1@sha256:5f1fb3f23bee2031abffd2216fac5e6458836facc06dc97029aac9a03120195f",
+    "engine_version": "vllm 0.26.0+rhaiv.8",
+    "workers": "4 x aggregated TP8 (one per node)",
+    "gpu_count": 32,
+    "gpu_type": "NVIDIA H200",
+    "kv_transfer": "none",
+    "max_model_len": 262144,
+    "max_num_seqs": 16,
+    "gpu_memory_utilization": 0.95,
+    "block_size": 256,
+    "prefix_caching": true,
+    "moe_backend": "marlin (mxfp4)",
+    "model": {
+      "model_id": "deepseek-ai/DeepSeek-V4-Pro-0813",
+      "revision": "72e1d3230f6c080a530b0a1d46f8eb4602340597",
+      "model_path": "/model",
+      "kv_cache_dtype": "fp8",
+      "request_body": {
+        "chat_template_kwargs": {
+          "thinking": false
+        }
+      }
+    }
+  },
+  "max_model_len": 262144,
+  "min_input_tokens": 250001,
+  "output_tokens": 256,
+  "concurrency": 8,
+  "session_rate": 0,
+  "sessions": 0,
+  "think_time": 0,
+  "warmup": 1,
+  "timeout": 3600.0,
+  "temperature": 0.0,
+  "extra_body": "{}",
+  "token_ids": false,
+  "cache_state": "mixed",
+  "metrics_url": [
+    "http://deepseek-v4-pro-0.deepseek-v4-pro.llm-d.svc.cluster.local:8000/metrics",
+    "http://deepseek-v4-pro-1.deepseek-v4-pro.llm-d.svc.cluster.local:8000/metrics",
+    "http://deepseek-v4-pro-2.deepseek-v4-pro.llm-d.svc.cluster.local:8000/metrics",
+    "http://deepseek-v4-pro-3.deepseek-v4-pro.llm-d.svc.cluster.local:8000/metrics",
+    "http://llmd-epp.llm-d.svc.cluster.local:9090/metrics"
+  ],
+  "results": "/bench/results/t1",
+  "run_id": "20261008T172531Z-57b72981",
+  "timestamp_utc": "2026-10-08T17:25:31.488443+00:00",
+  "dataset_sha256": "66880756c3dcd5d55db6078a3b1a2442cd22388f1690310f11fd3c25f18f7033",
+  "python": "3.12.15 (main, Oct  6 2026, 02:02:22) [GCC 14.2.0]",
+  "platform": "Linux-6.11.0-1016-nvidia-x86_64-with-glibc2.41",
+  "resolved_extra_body": {
+    "chat_template_kwargs": {
+      "thinking": false
+    }
+  },
+  "load_mode": "closed-loop",
+  "workload": "chatbot",
+  "session_count": 32
+}

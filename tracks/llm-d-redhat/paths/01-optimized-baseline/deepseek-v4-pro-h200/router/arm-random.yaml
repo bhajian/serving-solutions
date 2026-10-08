@@ -1,0 +1,23 @@
+# ARM A: cache-unaware. EPP v0.11.0 has no round-robin picker; random-picker shuffles
+# the candidate pods, so each request lands on a uniformly random replica.
+# The utilization-detector block is identical in every arm: it disables the filter EPP
+# otherwise injects into each profile (drops pods at KV >= 0.8 or queue >= 5), which
+# 256K prompts would trip and which would blur the routing comparison.
+router:
+  epp:
+    pluginsConfigFile: random.yaml
+    pluginsCustomConfig:
+      random.yaml: |
+        apiVersion: llm-d.ai/v1alpha1
+        kind: EndpointPickerConfig
+        plugins:
+        - type: single-profile-handler
+        - type: random-picker
+        - type: utilization-detector
+          parameters: {queueDepthThreshold: 1000000, kvCacheUtilThreshold: 1.0, headroom: 1.0, metricsStalenessThreshold: 30s}
+        flowControl:
+          saturationDetector: {pluginRef: utilization-detector}
+        schedulingProfiles:
+        - name: default
+          plugins:
+          - pluginRef: random-picker

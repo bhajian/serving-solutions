@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from tools import preflight, render_experiments  # noqa: E402
 
-EXP = ROOT / 'experiments'
+EXP = ROOT / 'tracks/nvidia-dynamo/studies/planned'
 FOLDERS = sorted(p for p in EXP.iterdir() if p.is_dir() and p.name[:2].isdigit())
 CONFIGS = sorted(p.parent for p in EXP.glob('*/configs/*/kustomization.yaml'))
 

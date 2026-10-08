@@ -24,7 +24,7 @@ CRDS = {  # CRD file -> versions to vendor
 
 
 def main(checkout):
-    bases = Path(checkout) / 'deploy/operator/config/crd/bases'
+    bases = Path(checkout) / 'tracks/nvidia-dynamo/install/config/crd/bases'
     OUT.mkdir(parents=True, exist_ok=True)
     index = {}
     for name, versions in CRDS.items():
@@ -36,7 +36,7 @@ def main(checkout):
                 target = OUT / f'{kind.lower()}_{v["name"]}.schema.json.gz'
                 target.write_bytes(gzip.compress(json.dumps(v['schema']['openAPIV3Schema'], sort_keys=True).encode(), mtime=0))
                 index[f'{crd["spec"]["group"]}/{v["name"]}/{kind}'] = {
-                    'file': target.name, 'source': f'deploy/operator/config/crd/bases/{name}',
+                    'file': target.name, 'source': f'tracks/nvidia-dynamo/install/config/crd/bases/{name}',
                     'source_sha256': hashlib.sha256(raw).hexdigest(), 'served': v.get('served'),
                     'storage': v.get('storage'), 'deprecated': v.get('deprecated', False)}
     (OUT / 'index.json').write_text(json.dumps(index, indent=2, sort_keys=True) + '\n')

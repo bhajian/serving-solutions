@@ -2,7 +2,7 @@
 """Substitute <PLACEHOLDER> site values into manifests, writing copies under --out.
 
 Checked-in manifests never contain real hostnames or addresses; render them for a
-specific cluster with a git-ignored env file (see deploy/site.env.example).
+specific cluster with a git-ignored env file (see platform/site.env.example).
 """
 import argparse
 import re
@@ -36,7 +36,7 @@ def render(text, values, source):
 
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    p.add_argument('--env', required=True, help='Site env file, e.g. deploy/site.env')
+    p.add_argument('--env', required=True, help='Site env file, e.g. platform/site.env')
     p.add_argument('--out', default=str(ROOT / 'build/site'))
     p.add_argument('paths', nargs='+', help='Files or directories to render')
     a = p.parse_args(argv)

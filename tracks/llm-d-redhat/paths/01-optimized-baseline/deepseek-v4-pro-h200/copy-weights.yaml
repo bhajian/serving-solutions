@@ -1,0 +1,115 @@
+# Fill the weight disks of replicas 2 and 3 by copying replicas 0 and 1's disks.
+# An RWO disk attaches to one node but can be mounted by several pods there, so each
+# copy pod runs next to its source replica (pod affinity) and largely reads from the
+# page cache that replica's weight load populates. Only the checkpoint is copied
+# (top-level, non-hidden entries); DEPLOYED_REVISION is written last, after the
+# file count and byte total match the source.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: weights-deepseek-v4-pro-2
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: compute-csi-default-sc
+  resources: {requests: {storage: 1500Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: weights-deepseek-v4-pro-3
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: compute-csi-default-sc
+  resources: {requests: {storage: 1500Gi}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: copy-weights
+data:
+  copy.sh: |
+    set -eu
+    cd /src
+    test -f DEPLOYED_REVISION
+    rm -f /dst/DEPLOYED_REVISION
+    entries=$(ls -1 | grep -vE '^(lost\+found|DEPLOYED_REVISION)$')
+    for e in $entries; do case "$e" in *.safetensors) ;; *) cp -a "$e" /dst/ ;; esac; done
+    ls -1 *.safetensors | xargs -P 8 -I{} cp -p {} /dst/{}
+    total() { (cd "$1" && for e in $entries; do find "$e" -type f; done | xargs stat -c %s | awk '{n++; s+=$1} END {print n, s}'); }
+    src=$(total /src); dst=$(total /dst)
+    echo "source: $src  copy: $dst"
+    [ "$src" = "$dst" ]
+    cp -p DEPLOYED_REVISION /dst/
+    echo "COPY_COMPLETE revision $(cat /dst/DEPLOYED_REVISION)"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: copy-weights-2
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                statefulset.kubernetes.io/pod-name: deepseek-v4-pro-0
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: copy
+        image: busybox:1.37.0@sha256:bdf57e528e45e4433820e045b29b4597825a1c9e38353532d90a01445013f82e
+        command: [sh, /scripts/copy.sh]
+        resources:
+          requests: {cpu: '4', memory: 4Gi}
+          limits: {memory: 32Gi}
+        volumeMounts:
+        - {name: src, mountPath: /src, readOnly: true}
+        - {name: dst, mountPath: /dst}
+        - {name: scripts, mountPath: /scripts}
+      volumes:
+      - name: src
+        persistentVolumeClaim: {claimName: weights-deepseek-v4-pro-0, readOnly: true}
+      - name: dst
+        persistentVolumeClaim: {claimName: weights-deepseek-v4-pro-2}
+      - name: scripts
+        configMap: {name: copy-weights}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: copy-weights-3
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                statefulset.kubernetes.io/pod-name: deepseek-v4-pro-1
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: copy
+        image: busybox:1.37.0@sha256:bdf57e528e45e4433820e045b29b4597825a1c9e38353532d90a01445013f82e
+        command: [sh, /scripts/copy.sh]
+        resources:
+          requests: {cpu: '4', memory: 4Gi}
+          limits: {memory: 32Gi}
+        volumeMounts:
+        - {name: src, mountPath: /src, readOnly: true}
+        - {name: dst, mountPath: /dst}
+        - {name: scripts, mountPath: /scripts}
+      volumes:
+      - name: src
+        persistentVolumeClaim: {claimName: weights-deepseek-v4-pro-1, readOnly: true}
+      - name: dst
+        persistentVolumeClaim: {claimName: weights-deepseek-v4-pro-3}
+      - name: scripts
+        configMap: {name: copy-weights}

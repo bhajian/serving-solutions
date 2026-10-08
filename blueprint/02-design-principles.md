@@ -30,7 +30,7 @@ These principles hold whether you run Dynamo or llm-d, and TensorRT-LLM, vLLM or
 
 ### 1. Start aggregated, earn disaggregation
 Disaggregation adds a network hop per request, two roles that must match, and transfer monitoring. For short prompts and balanced traffic, aggregated replicas with KV-aware routing often match it. **Deploy aggregated first, measure, then disaggregate on the same GPUs and compare.**
-*Here:* [deploy/sites/hgx-b300-2x8/01-aggregated](../deploy/sites/hgx-b300-2x8/01-aggregated/) is the baseline for every disaggregated track, and [benchmarks/](../benchmarks/) compares them with one dataset.
+*Here:* [tracks/nvidia-dynamo/sites/hgx-b300-2x8/01-aggregated](../tracks/nvidia-dynamo/sites/hgx-b300-2x8/01-aggregated/) is the baseline for every disaggregated track, and [benchmarks/](../benchmarks/) compares them with one dataset.
 
 ### 2. Split by resource profile, not by habit
 Prefill is compute-bound and decode is memory-bandwidth-bound. When they share GPUs, each gets the wrong batch size and they interfere with each other. Split them only when both phases are substantial at the same time and a tight tail-ITL SLO makes that interference expensive. Long inputs alone are not enough: prefill-dominated traffic was faster aggregated on the H200 site ([chapter 11](11-decision-guide.md), [chapter 12](12-results-and-reconciliation.md)).

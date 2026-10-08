@@ -1,0 +1,104 @@
+# =============================================================================
+# Disaggregated serving | Dynamo + vLLM | Node B = DECODE
+#
+# The decode worker receives the KV cache from the prefill worker on Node A
+# over InfiniBand, then generates the output tokens.
+#
+# Start Node A first (etcd must be healthy), then on Node B:
+#   docker compose --env-file deploy/cluster.env -f tracks/nvidia-dynamo/sites/hgx-b300-2x8/compose/02-dynamo-disagg-vllm/node-b.yaml up -d
+# =============================================================================
+name: disagg-vllm
+
+x-vllm-env: &vllm-env
+  DYN_NAMESPACE: disagg-vllm
+  DYN_DISCOVERY_BACKEND: etcd
+  ETCD_ENDPOINTS: http://${NODE_A_IP}:2379
+  DYN_REQUEST_PLANE: tcp
+  DYN_EVENT_PLANE: zmq
+  DYN_TCP_RPC_HOST: ${NODE_B_IP}
+  DYN_EVENT_PLANE_HOST: ${NODE_B_IP}
+  PYTHONHASHSEED: "0"
+  HF_HUB_OFFLINE: "1"
+  TRANSFORMERS_OFFLINE: "1"
+  HF_HOME: /runtime/hf
+  HF_MODULES_CACHE: /runtime/hf_modules
+  XDG_CACHE_HOME: /runtime/cache
+  VLLM_HOST_IP: ${NODE_B_IP}
+  VLLM_WORKER_MULTIPROC_METHOD: spawn
+  VLLM_CACHE_ROOT: /runtime/vllm
+  TRITON_CACHE_DIR: /runtime/triton
+  TORCH_EXTENSIONS_DIR: /runtime/torch_extensions
+  NCCL_SOCKET_IFNAME: ${IP_IFACE}
+  GLOO_SOCKET_IFNAME: ${IP_IFACE}
+  NCCL_IB_DISABLE: "0"
+  VLLM_NIXL_SIDE_CHANNEL_HOST: ${NODE_B_IP}
+  VLLM_NIXL_SIDE_CHANNEL_PORT: "5600"
+  UCX_NET_DEVICES: ${IB_DEVICES}
+  UCX_TLS: rc_x,rc,cuda_copy,cuda_ipc
+  UCX_RNDV_SCHEME: get_zcopy
+  UCX_RNDV_THRESH: "0"
+  NIXL_LOG_LEVEL: INFO
+  VLLM_ALLREDUCE_USE_SYMM_MEM: "0"
+  VLLM_DISABLED_KERNELS: FlashInferFP8ScaledMMLinearKernel
+  VLLM_SSM_CONV_STATE_LAYOUT: DS
+  VLLM_ALLOW_CHUNKED_LOCAL_ATTN_WITH_HYBRID_KV_CACHE: "1"
+  DYN_VLLM_APPEND_PREFILL_OUTPUT_TOKENS: "0"
+
+services:
+  decode:
+    image: nvcr.io/nvidia/ai-dynamo/vllm-runtime:1.4.0@sha256:8401411dc8e968eff9310462102491509e3f93d3ce03d6febc8d5566f067a7b1
+    network_mode: host
+    ipc: host
+    user: "0"
+    gpus: all
+    devices:
+      - /dev/infiniband:/dev/infiniband
+    cap_add: [IPC_LOCK]
+    ulimits:
+      memlock: {soft: -1, hard: -1}
+      stack: 67108864
+    environment:
+      <<: *vllm-env
+      DYN_SYSTEM_PORT: "8081"
+    volumes:
+      - ${MODEL_DIR}:/model:ro
+      - ${RUNTIME_DIR}/disagg-vllm/decode:/runtime
+    logging:
+      driver: json-file
+      options: {max-size: 100m, max-file: "3"}
+    entrypoint: ["bash", "-c"]
+    command:
+      - |
+        set -e
+        grep -qx 252a02f921642313abde19b29a723a16602fe25e /model/DEPLOYED_REVISION \
+          || { echo "Checkpoint revision mismatch in /model/DEPLOYED_REVISION"; exit 1; }
+
+        exec python3 -m dynamo.vllm \
+          --disaggregation-mode decode \
+          --kv-transfer-config '{"kv_connector":"NixlConnector","kv_role":"kv_both"}' \
+          --model /model \
+          --served-model-name nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4 \
+          --tensor-parallel-size 8 \
+          --no-enable-expert-parallel \
+          --trust-remote-code \
+          --max-model-len 32768 \
+          --max-num-seqs 32 \
+          --max-num-batched-tokens 8192 \
+          --gpu-memory-utilization 0.80 \
+          --block-size 64 \
+          --kv-cache-dtype fp8 \
+          --enable-prefix-caching \
+          --attention-backend FLASHINFER \
+          --linear-backend cutlass \
+          --moe-backend flashinfer_trtllm \
+          --mamba-backend triton \
+          --mamba-cache-mode align \
+          --mamba-ssm-cache-dtype bfloat16 \
+          --no-enable-flashinfer-autotune \
+          --no-disable-hybrid-kv-cache-manager \
+          --async-scheduling \
+          --reasoning-parser-plugin /model/ultra_v3_reasoning_parser.py \
+          --reasoning-parser nemotron_v3 \
+          --dyn-tool-call-parser qwen3_coder \
+          --dyn-reasoning-parser nemotron3 \
+          --kv-events-config '{"publisher":"zmq","topic":"kv-events","endpoint":"tcp://127.0.0.1:5571","enable_kv_cache_events":true}'

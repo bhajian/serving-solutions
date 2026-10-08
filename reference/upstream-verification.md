@@ -3,7 +3,7 @@
 [Home](../README.md) › [Reference](README.md) › Upstream verification
 
 Every CRD field, flag and environment variable used by the operator path in
-[deploy/base](../deploy/base/) and [deploy/overlays](../deploy/overlays/) was checked
+[tracks/nvidia-dynamo/graphs](../tracks/nvidia-dynamo/graphs/) and [tracks/nvidia-dynamo/LAB-VS-PRODUCTION.md](../tracks/nvidia-dynamo/LAB-VS-PRODUCTION.md) was checked
 against these pinned source trees. Paths are relative to each checkout.
 
 | Source | Tag | Commit |
@@ -12,7 +12,7 @@ against these pinned source trees. Paths are relative to each checkout.
 | [sgl-project/sglang](https://github.com/sgl-project/sglang/tree/v0.5.16) | `v0.5.16` | shallow clone of the tag |
 
 CRD schemas for `kubeconform` are converted from the Dynamo CRDs under
-`deploy/operator/config/crd/bases/` and vendored in [upstream/](upstream/).
+`tracks/nvidia-dynamo/install/config/crd/bases/` and vendored in [upstream/](upstream/).
 
 ## DynamoGraphDeployment (`nvidia.com`)
 
@@ -30,7 +30,7 @@ CRD schemas for `kubeconform` are converted from the Dynamo CRDs under
 - RDMA: upstream requests `rdma/ib` through resource limits
   (`recipes/deepseek-v4/deepseek-v4-pro/sglang/disagg-b200/deploy.yaml` L81-90).
 - Operator-injected defaults: frontend port 8000, liveness `/live`, readiness `/health`
-  (`deploy/operator/internal/dynamo/component_frontend.go` L42-80). Workers expose the
+  (`tracks/nvidia-dynamo/install/internal/dynamo/component_frontend.go` L42-80). Workers expose the
   `system` port 9090 with `/live` and `/health`, and a startup probe of 720 × 10 s
   (`component_worker.go` L28-109). Worker readiness does not gate traffic; routing
   uses discovery (L55-57).

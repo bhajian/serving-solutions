@@ -15,14 +15,14 @@
 7. [Outputs and the comparison notebook](#7-outputs-and-the-comparison-notebook)
 8. [Rules for a fair comparison](#8-rules-for-a-fair-comparison)
 
-This folder holds the benchmark code and the methodology. Seed data lives in [datasets/](../datasets/), and the report in [notebooks/compare.ipynb](../notebooks/compare.ipynb). Run modules from the repository root with `python -m benchmarks.<module>`.
+This folder holds the benchmark code and the methodology. Seed data lives in [datasets/](../datasets/), and the report in [benchmarks/compare.ipynb](compare.ipynb). Run modules from the repository root with `python -m benchmarks.<module>`.
 
 | Module | Purpose |
 |---|---|
 | [generate_dataset.py](generate_dataset.py) | Expands the seed fixtures into deterministic, token-counted chatbot or agentic sessions |
 | [run.py](run.py) | Streams sessions against an OpenAI-compatible endpoint and records TTFT, TPOT, ITL, throughput and failures per request |
 | [metrics.py](metrics.py) | Metric definitions and summaries (unit-tested) |
-| [collect.py](collect.py) | Rebuilds `results/summary.csv` from all run folders |
+| [collect.py](collect.py) | Rebuilds `tracks/nvidia-dynamo/studies/summary.csv` from all run folders |
 | [loadgen.py](loadgen.py) | Open-loop (Poisson or constant RPS) or closed-loop sessions with sampled ISL/OSL; **goodput at SLO**, SLO attainment, cost per million tokens, AIPerf/genai-perf export |
 | [sweep.py](sweep.py) | Sweeps RPS × P:D ratio × TP per role from a YAML spec and writes one `sweep-table.csv` |
 | [distributions.py](distributions.py) | Seeded ISL/OSL distributions (`fixed`, `uniform`, `lognormal` clipped) |
@@ -35,7 +35,7 @@ This folder holds the benchmark code and the methodology. Seed data lives in [da
 
 
 1. Generate the dataset **once** (section 2).
-2. Deploy one track from [deploy/](../deploy/), verify it (step 6 of its guide), run the sweep (section 4), then tear it down.
+2. Deploy one track from [tracks](../tracks/README.md), verify it (step 6 of its guide), run the sweep (section 4), then tear it down.
 3. Repeat for the next track with **the same dataset file** and the same concurrency levels.
 4. Run `python -m benchmarks.collect` and open the notebook.
 
@@ -44,7 +44,7 @@ This folder holds the benchmark code and the methodology. Seed data lives in [da
 | Does disaggregation help this workload? | 01 aggregated vLLM against 02 Dynamo disaggregated vLLM |
 | Does it help on SGLang? | 01 aggregated SGLang against 03 Dynamo disaggregated SGLang |
 | Which engine is faster here? | 02 against 03 (or 01 vLLM against 01 SGLang). This is a **stack** comparison: engine, image and KV dtype all differ. |
-| Dynamo against llm-d | 02 against [04](../deploy/sites/hgx-b300-2x8/04-llm-d-disagg/), same engine and model |
+| Dynamo against llm-d | 02 against [04](../tracks/llm-d-redhat/paths/05-pd-disaggregation/hgx-b300-qwen3-coder-480b/), same engine and model |
 
 Every run records its `technology` and `backend` from the track's `deployment.json`, so the notebook keeps the cohorts apart.
 
@@ -84,7 +84,7 @@ Jinja chat template. With a local copy of the pinned checkpoint's tokenizer and
 `--deepseek-v4-encoder /path/to/checkpoint/encoding/encoding_dsv4.py
 --trust-remote-code --template-kwargs '{"thinking":false}'`. The generator uses
 the official encoder for chat and tool histories and records its SHA256 in the
-dataset metadata. See the [H200 deployment guide](../deploy/sites/nebius-h200-2x8/deepseek-v4-pro/)
+dataset metadata. See the [H200 deployment guide](../tracks/nvidia-dynamo/sites/nebius-h200-2x8/deepseek-v4-pro/)
 for a complete download and benchmark example.
 
 One JSONL row is a session:
@@ -102,7 +102,7 @@ python -m benchmarks.run \
   --base-url http://<B300_NODE_A_IP>:8000/v1 \
   --model nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4 \
   --technology dynamo-disagg-compose \
-  --deployment deploy/legacy-compose/02-dynamo-disagg-vllm/deployment.json \
+  --deployment tracks/nvidia-dynamo/sites/hgx-b300-2x8/compose/02-dynamo-disagg-vllm/deployment.json \
   --dataset datasets/generated/nemotron-chatbot-8k.jsonl \
   --max-model-len 32768 --output-tokens 256 \
   --concurrency 4 --warmup 1 --timeout 3600 --cache-state uncontrolled \
@@ -125,7 +125,7 @@ CONCURRENCIES='1 2 4 8' REPETITIONS=3 bash tools/sweep.sh \
   --base-url http://<B300_NODE_A_IP>:8000/v1 \
   --model nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4 \
   --technology dynamo-disagg-compose \
-  --deployment deploy/legacy-compose/02-dynamo-disagg-vllm/deployment.json \
+  --deployment tracks/nvidia-dynamo/sites/hgx-b300-2x8/compose/02-dynamo-disagg-vllm/deployment.json \
   --dataset datasets/generated/nemotron-chatbot-8k.jsonl \
   --max-model-len 32768 --output-tokens 256
 ```
@@ -138,14 +138,14 @@ Closed-loop saturation is the default. `--session-rate 0.1` paces new sessions a
 
 ## 5. Long context: more than 250K input tokens
 
-For the DeepSeek V4 Pro H200 experiment, see the [256K comparison protocol](../deploy/sites/nebius-h200-2x8/deepseek-v4-pro/BENCHMARK-256K.md) and [dedicated notebook](../notebooks/deepseek_v4_pro_256k.ipynb). It uses the native encoder, in-cluster load generation and an acknowledged KV-cache reset before each topology run.
+For the DeepSeek V4 Pro H200 experiment, see the [256K comparison protocol](../tracks/nvidia-dynamo/studies/deepseek-v4-pro-256k-comparison/REPORT.md) and [dedicated notebook](../tracks/nvidia-dynamo/studies/deepseek-v4-pro-256k-comparison/deepseek_v4_pro_256k.ipynb). It uses the native encoder, in-cluster load generation and an acknowledged KV-cache reset before each topology run.
 
-For Nemotron 3 Nano, the [128K protocol](../deploy/sites/nebius-h200-2x8/nemotron-3-nano/BENCHMARK-128K.md)
+For Nemotron 3 Nano, the [128K protocol](../tracks/nvidia-dynamo/studies/nemotron-3-nano-128k-comparison/REPORT.md)
 uses its native chat template, 32 sessions and three repeats per topology. Its
-[notebook](../notebooks/nemotron_3_nano_128k.ipynb) reports run means and ranges.
+[notebook](../tracks/nvidia-dynamo/studies/nemotron-3-nano-128k-comparison/nemotron_3_nano_128k.ipynb) reports run means and ranges.
 
 The reverse workload, 8K input and 128K forced output at maximum concurrency, uses
-`benchmarks.long_decode`; see the [8K/128K protocol](../deploy/sites/nebius-h200-2x8/nemotron-3-nano/BENCHMARK-8K-128K.md).
+`benchmarks.long_decode`; see the [8K/128K protocol](../tracks/nvidia-dynamo/studies/nemotron-3-nano-8k-128k-comparison/REPORT.md).
 Generate single-turn sessions with `generate_dataset --turns 1`.
 
 1. **Redeploy with a larger window.** In the worker command of your track, set `--max-model-len 262144 --max-num-seqs 4` for vLLM, or `--context-length 262144 --max-running-requests 4` for SGLang. Update `max_model_len` in `deployment.json` to match. Restart **both** roles.
@@ -249,7 +249,7 @@ Distributions include the mean, p50, p90, p95, p99 and max. Client timings inclu
 
 ## 7. Outputs and the comparison notebook
 
-Each run creates `results/<UTC timestamp>-<id>/`:
+Each run creates `tracks/nvidia-dynamo/studies/<UTC timestamp>-<id>/`:
 
 - `requests.csv`: one row per request, including errors
 - `requests.jsonl`: every streamed event with its arrival time, for auditing. It can contain generated text.
@@ -258,8 +258,8 @@ Each run creates `results/<UTC timestamp>-<id>/`:
 - `metrics-before-*.prom` / `metrics-after-*.prom`: worker metric snapshots
 
 ```bash
-python -m benchmarks.collect          # rebuilds results/summary.csv from all runs
-jupyter lab notebooks/compare.ipynb   # or open it in your IDE
+python -m benchmarks.collect          # rebuilds tracks/nvidia-dynamo/studies/summary.csv from all runs
+jupyter lab benchmarks/compare.ipynb   # or open it in your IDE
 ```
 
 The notebook shows failure and validity counts first. It then groups repeated identical configurations and compares model × technology × backend with charts, which it can export as PNG or CSV. It never pools different datasets or deployments.
@@ -274,7 +274,7 @@ The notebook shows failure and validity counts first. It then groups repeated id
 - Before claiming a disaggregation result, show evidence that KV moved over RDMA (step 7 of the deploy guides). Size pools from the measured numbers with [blueprint 09](../blueprint/09-parallelism-and-sizing.md).
 - Save GPU and driver inventory and resolved image digests with the results. Engine comparisons are **stack** comparisons.
 
-**Status:** the benchmark code is unit-tested (metrics, streaming, failures, notebook). The H200 site includes live functional validation and a [matched 256K topology comparison](../deploy/sites/nebius-h200-2x8/deepseek-v4-pro/BENCHMARK-256K.md), with [raw results and executed analysis](../results/deepseek-v4-pro-256k-comparison/). The comparison has one measured run per topology; it does not establish maximum capacity or repeatability. See the [performance runbook](../deploy/sites/nebius-h200-2x8/deepseek-v4-pro/PERFORMANCE.md) for larger sweeps.
+**Status:** the benchmark code is unit-tested (metrics, streaming, failures, notebook). The H200 site includes live functional validation and a [matched 256K topology comparison](../tracks/nvidia-dynamo/studies/deepseek-v4-pro-256k-comparison/REPORT.md), with [raw results and executed analysis](../tracks/nvidia-dynamo/studies/deepseek-v4-pro-256k-comparison/). The comparison has one measured run per topology; it does not establish maximum capacity or repeatability. See the [performance runbook](../tracks/nvidia-dynamo/sites/nebius-h200-2x8/deepseek-v4-pro/PERFORMANCE.md) for larger sweeps.
 
 ---
 

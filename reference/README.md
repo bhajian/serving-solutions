@@ -13,4 +13,4 @@ Supporting material for all sections.
 | [vllm-vs-sglang.md](vllm-vs-sglang.md) | Flag, port and behavior mapping between the two engines |
 | [troubleshooting.md](troubleshooting.md) | Symptom → cause → action table, diagnostic commands |
 | [sources.md](sources.md) | Pinned versions and upstream references (NVIDIA recipes, llm-d, SGLang, NIXL) |
-| [manual-docker-walkthrough.md](manual-docker-walkthrough.md) | The original hand-run `docker run` deployment of disaggregated Nemotron. It shows every step with no Compose or Kubernetes, and is useful for understanding exactly what the reference files automate. |
+| [manual-docker-walkthrough.md](../tracks/nvidia-dynamo/sites/hgx-b300-2x8/manual-docker-walkthrough.md) | The original hand-run `docker run` deployment of disaggregated Nemotron. It shows every step with no Compose or Kubernetes, and is useful for understanding exactly what the reference files automate. |

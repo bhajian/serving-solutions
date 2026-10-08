@@ -16,7 +16,7 @@ is **kept outside the repository** by the maintainer. The same map drives both s
 `tests/test_site_hygiene.py` fails if a public or private IPv4 address, a cloud
 node hostname, a home-directory path or a literal kube context reappears.
 
-Real values for a deployment go in a git-ignored `deploy/site.env` and are
+Real values for a deployment go in a git-ignored `platform/site.env` and are
 substituted by `tools/render_site.py`. A force-push does not remove GitHub's
 cached pull-request refs (`refs/pull/*`); ask GitHub Support to purge them, and
 treat the old LoadBalancer address as exposed (firewall or rotate it).

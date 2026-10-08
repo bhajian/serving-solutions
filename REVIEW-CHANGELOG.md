@@ -5,7 +5,7 @@
 Work done on branch `blueprint-production`, starting from `main` after its history was
 rewritten to remove site identifiers. No cluster was used for any of this. **No benchmark
 number was added**: every measured figure in the docs comes from the existing studies in
-`results/`, and everything else is labelled UNVALIDATED.
+`tracks/nvidia-dynamo/studies/`, and everything else is labelled UNVALIDATED.
 
 ## Commits
 
@@ -39,7 +39,7 @@ number was added**: every measured figure in the docs comes from the existing st
   - the kube context
   - local home paths
 - Values are now `<PLACEHOLDER>` tokens, filled by `tools/render_site.py` from a git-ignored
-  `deploy/site.env`. Drivers read node IPs from the environment.
+  `platform/site.env`. Drivers read node IPs from the environment.
 - No tokens or keys were found in the tree or history. Commit author emails were left as
   standard Git metadata.
 - `tests/test_site_hygiene.py` fails on any public or private IPv4 address, cloud node
@@ -63,7 +63,7 @@ number was added**: every measured figure in the docs comes from the existing st
 
 - `python -m pytest -q` passes: 210 tests.
 - `python tools/validate.py` reports zero errors: 185 raw objects and 766 rendered
-  kustomize objects across `deploy/` and `experiments/`.
+  kustomize objects across `deploy/` and `tracks/nvidia-dynamo/studies/planned/`.
   - It runs in strict mode: unknown fields are errors, because Kubernetes silently prunes
     them from custom resources.
   - Schemas: Kubernetes 1.33; Dynamo 1.4.0 DynamoGraphDeployment (v1beta1, v1alpha1) and
@@ -78,8 +78,8 @@ number was added**: every measured figure in the docs comes from the existing st
 - Helm values: every key path exists in the vendored chart values (dynamo-platform,
   GPU Operator, Network Operator).
 - Alert rules pass `promtool check rules`. Every metric in a rule or panel has a recorded
-  provenance (`deploy/observability/metrics-inventory.txt`).
-- Images: every image in `deploy/base`, the production overlays and the experiments is
+  provenance (`tracks/nvidia-dynamo/observability/metrics-inventory.txt`).
+- Images: every image in `tracks/nvidia-dynamo/graphs`, the production overlays and the experiments is
   pinned by digest. Digests were read from the registries on 2026-10-01.
 - The dataset generator's output without the new flags is byte-identical to the previous
   version.
@@ -103,9 +103,9 @@ number was added**: every measured figure in the docs comes from the existing st
 
 | Item | Where |
 | --- | --- |
-| OCI chart paths for Grove (`oci://ghcr.io/ai-dynamo/grove/grove-charts`) and KAI (`oci://ghcr.io/kai-scheduler/kai-scheduler/kai-scheduler`); versions are verified from `platform-Chart.yaml` | `deploy/operator/README.md` |
-| The NGC chart URL from the 1.4.0 release notes returned HTTP 404 on 2026-10-01; fallback is building from the tag | `deploy/operator/README.md` |
-| Whether NicClusterPolicy `version` accepts a digest; the tag's digest is recorded | `deploy/overlays/production/operators/nic-cluster-policy.yaml` |
+| OCI chart paths for Grove (`oci://ghcr.io/ai-dynamo/grove/grove-charts`) and KAI (`oci://ghcr.io/kai-scheduler/kai-scheduler/kai-scheduler`); versions are verified from `platform-Chart.yaml` | `tracks/nvidia-dynamo/install/README.md` |
+| The NGC chart URL from the 1.4.0 release notes returned HTTP 404 on 2026-10-01; fallback is building from the tag | `tracks/nvidia-dynamo/install/README.md` |
+| Whether NicClusterPolicy `version` accepts a digest; the tag's digest is recorded | `platform/operators/nic-cluster-policy.yaml` |
 | Which allocator causes the prefill host-memory swing (NIXL/UCX staging vs SGLang) | `reference/troubleshooting.md`, experiment 04 |
 | DP attention and EP for DeepSeek V4 Pro on H200 (upstream recipes are TP8 only); Hopper support of non-Marlin MXFP4 MoE backends | experiment 05 |
 | aiconfigurator support for this model on SGLang (needed for DGDR `rapid`; the profiling request uses `thorough`) | `tools/render_production.py` |
@@ -114,7 +114,7 @@ number was added**: every measured figure in the docs comes from the existing st
 
 ## Tomorrow's run order
 
-`python tools/preflight.py experiments/<nn> --context "$KUBE_CONTEXT"` before each. Durations
+`python tools/preflight.py tracks/nvidia-dynamo/studies/planned/<nn> --context "$KUBE_CONTEXT"` before each. Durations
 are planning estimates.
 
 1. **00 site migration** (3–4 h): static PVs, operator, NVIDIA operators, observability,

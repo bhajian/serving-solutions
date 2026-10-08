@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Check that a cluster is ready for an experiment before spending GPU hours on it.
 
-    python tools/preflight.py experiments/01-pd-ratio-sweep --context "$KUBE_CONTEXT"
+    python tools/preflight.py tracks/nvidia-dynamo/studies/planned/01-pd-ratio-sweep --context "$KUBE_CONTEXT"
 
-Reads experiments/<nn>/experiment.yaml and checks, through kubectl:
+Reads tracks/nvidia-dynamo/studies/planned/<nn>/experiment.yaml and checks, through kubectl:
   gpus        allocatable nvidia.com/gpu on nodes labelled nvidia.com/gpu.product=NVIDIA-H200
   rdma        allocatable rdma/rdma_shared_device_a on those nodes
   crds        every listed CustomResourceDefinition is installed

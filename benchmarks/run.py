@@ -261,9 +261,9 @@ def parser():
     p.add_argument('--base-url', required=True, help='API URL including /v1')
     p.add_argument('--model', required=True)
     p.add_argument('--technology', required=True, choices=[
-        'dynamo-agg-compose', 'dynamo-agg-k8s',        # deploy/sites/hgx-b300-2x8/01-aggregated
-        'dynamo-disagg-compose', 'dynamo-disagg-k8s',  # deploy/02, 03
-        'llmd-k8s',                                    # deploy/sites/hgx-b300-2x8/04-llm-d-disagg
+        'dynamo-agg-compose', 'dynamo-agg-k8s',        # tracks/nvidia-dynamo/sites/hgx-b300-2x8/01-aggregated
+        'dynamo-disagg-compose', 'dynamo-disagg-k8s',  # B300 reference tracks 02, 03
+        'llmd-k8s',                                    # tracks/llm-d-redhat/paths/05-pd-disaggregation/hgx-b300-qwen3-coder-480b
         'dynamo-compose', 'dynamo-k8s'],               # legacy labels (= disaggregated)
         help='Must match the "technology" field of --deployment when both are given')
     p.add_argument('--backend', choices=['vllm', 'sglang'],

@@ -9,12 +9,12 @@ lever at full batch. The gain is set by the acceptance length, which depends on 
 workload: code and agent traffic accept 4–5.5 tokens per step with Kimi K3's DSpark draft,
 creative chat about 2.6. Checkpoint-native drafts (MTP, NextN, DSpark) beat generic ones.
 Nothing in this chapter has been measured in this repository. The DeepSeek V4 MTP run is
-prepared in [experiments/05](../experiments/05-deepseek-layout/), and the numbers quoted
+prepared in [tracks/nvidia-dynamo/studies/planned/05](../tracks/nvidia-dynamo/studies/planned/05-deepseek-layout/), and the numbers quoted
 here are vendor- and community-reported.
 
 | What you get from this repository | What you still own |
 | --- | --- |
-| The method, the cost model, per-engine flags, a turn-it-on checklist, and an MTP configuration prepared in [experiments/05](../experiments/05-deepseek-layout/) | Acceptance length measured on **your** prompts, at **your** temperature and concurrency |
+| The method, the cost model, per-engine flags, a turn-it-on checklist, and an MTP configuration prepared in [tracks/nvidia-dynamo/studies/planned/05](../tracks/nvidia-dynamo/studies/planned/05-deepseek-layout/) | Acceptance length measured on **your** prompts, at **your** temperature and concurrency |
 
 ## How it works
 
@@ -159,7 +159,7 @@ measured step.
 
 Record the acceptance metrics with every run: SGLang `sglang:spec_accept_length` and
 `sglang:spec_num_draft_tokens` (already in
-[deploy/observability](../deploy/observability/metrics-inventory.txt)); vLLM
+[tracks/nvidia-dynamo/observability](../tracks/nvidia-dynamo/observability/metrics-inventory.txt)); vLLM
 `vllm:spec_decode_num_accepted_tokens`, `vllm:spec_decode_num_draft_tokens` and
 `vllm:spec_decode_num_drafts`. Alert when acceptance drops: it is the first sign of a traffic
 shift or a draft/target mismatch after an upgrade.

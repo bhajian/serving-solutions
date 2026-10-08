@@ -19,7 +19,7 @@ caching; RAG favours prefill-side levers; reasoning is a decode problem.
 
 The constants in this chapter (*Tp*, *Sd*, typical ISL/OSL) are **illustrative**. They show how
 the decision moves, not where your boundary is. Measure your own with
-[benchmarks/](../benchmarks/README.md) and [experiments/01](../experiments/01-pd-ratio-sweep/).
+[benchmarks/](../benchmarks/README.md) and [tracks/nvidia-dynamo/studies/planned/01](../tracks/nvidia-dynamo/studies/planned/01-pd-ratio-sweep/).
 
 ## 1. The prefill-to-decode work ratio
 
@@ -96,7 +96,7 @@ prefill) gains the most ([chapter 14](14-frontier-moe-techniques.md)).
 |---|---|---|---|---|---|
 | **Small dense ≤ ~15B** | TP1, many replicas | Aggregated + KV router | Rarely: high transfer intensity, short prefills | EAGLE-3 or n-gram; small draft models are a poor fit (the target is already small) | Prefix caching, FP8 |
 | **Mid dense 30–70B** | TP2–TP4 (H200), TP1–TP2 (B300, FP8/FP4) | Aggregated | Long inputs (≥ 16K effective), tight ITL, RDMA; FP8 KV to halve the payload | EAGLE-3 or a same-family draft (e.g. a 1–3B sibling) | FP8 KV, chunked prefill tuning |
-| **Small MoE (30B-A3B class)** | TP1–TP4 | Aggregated (measured on H200) | Only with TP2/TP4 workers so P:D is tunable ([experiments/01](../experiments/01-pd-ratio-sweep/)) | MTP if shipped; EAGLE-3 | Many small workers; KV router |
+| **Small MoE (30B-A3B class)** | TP1–TP4 | Aggregated (measured on H200) | Only with TP2/TP4 workers so P:D is tunable ([tracks/nvidia-dynamo/studies/planned/01](../tracks/nvidia-dynamo/studies/planned/01-pd-ratio-sweep/)) | MTP if shipped; EAGLE-3 | Many small workers; KV router |
 | **Large MoE 200–500B** (Qwen3 235B/480B) | One node, TP8/EP8 | Aggregated on 1–2 nodes; P/D from about 4 nodes | When prefill wants small TP and decode wants wide EP | EAGLE-3 / MTP where available | EP, FP8, DP attention if supported |
 | **Frontier MoE + MLA ≥ 600B** (DeepSeek V4, Kimi K2/K3) | 1 node (B300) to a rack (NVL72) | P/D at scale; aggregated TP8 for small deployments and bring-up | Default at scale: low transfer intensity, phase-specific layouts | **Native MTP/NextN/DSpark**: the biggest single per-user gain | DP attention, wide EP, DCP, FP4 on Blackwell |
 | **Hybrid SSM / linear attention** (Nemotron 3, Qwen3-Next, K3) | Per size class above | Per size class | Payload includes SSM/KDA state; small at long context | Only if the engine supports state rollback for the family | Snapshot-aware prefix caching ([chapter 08](08-kv-cache-and-offloading.md)) |
@@ -143,7 +143,7 @@ study (R ≈ 0.003) is decode-dominated. Aggregated won all three, as the window
 | KV offload tiers (host, NVMe, shared) | ◐ | ◐ | ● | ● | ○ | ◐ | ○ | The reusable working set exceeds HBM ([chapter 08](08-kv-cache-and-offloading.md)) |
 | **P/D disaggregation** | ◐ | ◐ | ◐ | ◐ | ○ | ○ | ○ | 0.15 ≲ R ≲ 7, N ≥ N_min, tight ITL, RDMA, low transfer intensity |
 | **Speculative decoding** | ◐ | ◐ n-gram | ● | ● | ● | ○ | ○ | Acceptance ≥ ~3, ≤ ~16–32 sequences per decode instance ([chapter 13](13-speculative-decoding.md)) |
-| Larger prefill chunks (8–16K) | ○ | ● | ● | ● | ○ | ○ | ● | Long ISL and no tight ITL in aggregated mode, or any long ISL on a prefill pool ([experiments/07](../experiments/07-prefill-chunk-size/)) |
+| Larger prefill chunks (8–16K) | ○ | ● | ● | ● | ○ | ○ | ● | Long ISL and no tight ITL in aggregated mode, or any long ISL on a prefill pool ([tracks/nvidia-dynamo/studies/planned/07](../tracks/nvidia-dynamo/studies/planned/07-prefill-chunk-size/)) |
 | Context / pipeline parallel prefill | ○ | ● | ◐ | ◐ | ○ | ○ | ◐ | ISL ≥ ~128K where single-worker TTFT misses the SLO |
 | DCP / DP attention on decode | ○ | ◐ | ● | ● | ● | ○ | ◐ | MLA models whose decode KV capacity limits concurrency |
 | Wide EP on decode | ◐ | ◐ | ◐ | ◐ | ◐ | ○ | ● | Large MoE at high decode concurrency, ideally inside NVLink |
@@ -156,7 +156,7 @@ study (R ≈ 0.003) is decode-dominated. Aggregated won all three, as the window
 
 - **Prefix reuse and P/D compete for the same prize.** A 90% cache hit removes 90% of prefill,
   which can move a workload out of the disaggregation window entirely. Enable and measure
-  KV-aware routing **before** deciding on P/D ([experiments/02](../experiments/02-kv-router/)).
+  KV-aware routing **before** deciding on P/D ([tracks/nvidia-dynamo/studies/planned/02](../tracks/nvidia-dynamo/studies/planned/02-kv-router/)).
 - **Speculation shifts P:D toward prefill**, and its draft memory lowers decode capacity.
   Size the pools with speculation in its production setting.
 - **Speculation and wide EP pull in opposite directions.** Wide EP wants huge decode batches;

@@ -2,7 +2,7 @@
 
 [Home](../README.md) › [Reference](README.md) › Models
 
-The reference deployments in deploy/01–03 serve **NVIDIA Nemotron 3 Ultra 550B-A55B NVFP4**. This page lists the other model profiles the repository knows about, and how to switch a deployment to one of them.
+The reference deployments in the B300 reference tracks 01–03 (tracks/nvidia-dynamo/sites/hgx-b300-2x8) serve **NVIDIA Nemotron 3 Ultra 550B-A55B NVFP4**. This page lists the other model profiles the repository knows about, and how to switch a deployment to one of them.
 
 ## Switching a reference deployment to another model
 
@@ -10,7 +10,7 @@ The hand-written deployment files spell out every flag, so switching models mean
 
 | What | Where | Nemotron value | Example: Qwen3-Coder-480B FP8 |
 |---|---|---|---|
-| Weights path | `MODEL_DIR` in `deploy/cluster.env`, or the `hostPath` volumes in Kubernetes | `/data/nemotron-ultra/model` | `/data/models/qwen-480b` |
+| Weights path | `MODEL_DIR` in `tracks/nvidia-dynamo/sites/hgx-b300-2x8/compose/cluster.env`, or the `hostPath` volumes in Kubernetes | `/data/nemotron-ultra/model` | `/data/models/qwen-480b` |
 | Revision check | `grep -qx <sha>` line in each worker command | `252a02f9…` | `003f183a92fbe5b9a8325aaa8b2ae797c91dd90f` |
 | API model name | `--served-model-name` | `nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4` | `Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8` |
 | Model-specific engine flags | vLLM: `--attention-backend` through `--reasoning-parser`. SGLang: none beyond `--trust-remote-code`. | Nemotron hybrid kernels + parsers | **Remove** them. Qwen needs none. |
@@ -25,7 +25,7 @@ The exact values for every profile are in [configs/models.yaml](../configs/model
 
 ```bash
 python tools/render.py --target compose --model qwen-480b --out build/compose-qwen
-diff <(grep -- '--' deploy/legacy-compose/02-dynamo-disagg-vllm/node-a.yaml) <(grep -- '- --' build/compose-qwen/node-a.yaml)
+diff <(grep -- '--' tracks/nvidia-dynamo/sites/hgx-b300-2x8/compose/02-dynamo-disagg-vllm/node-a.yaml) <(grep -- '- --' build/compose-qwen/node-a.yaml)
 ```
 
 Download the new model on **both** nodes first (`python tools/download_model.py --model qwen-480b`), and stop both workers before switching.
@@ -83,7 +83,7 @@ The details below describe the original vLLM profiles. Each model also has an in
 
 - **Kimi on Dynamo:** automatically uses `nvcr.io/nvidia/ai-dynamo/vllm-runtime:1.5.0-kimi-k3-dev.1`, an official experimental image carrying K3 patches on a vLLM 0.28.0 base. This is an explicit exception to upstream's version floor, scoped to that model-specific image. The frontend uses Dynamo's native chat processor and the workers select K3 tool/reasoning parsers. NVIDIA's reference targets GB300/NVLink; this project's B300/InfiniBand TP8 adaptation remains unvalidated. It serves text only, with speculative decoding disabled and no draft-model download. Do not substitute the Nemotron 1.4.0 image or upgrade vLLM in place. [NVIDIA preview release](https://github.com/ai-dynamo/dynamo/releases/tag/v1.5.0-kimi-k3-dev.1).
 - **Kimi on llm-d:** the pinned vLLM 0.30.0 meets the recipe's version floor. That alone does not qualify this symmetric TP8 P/D adaptation, GPU memory headroom, hybrid-state transfer or tool output. Begin at low concurrency; adjust GPU memory utilization only after inspecting available KV capacity. K3 always thinks, so its latency is not directly comparable with a non-thinking model without recording that difference.
-- **DeepSeek V4:** vLLM uses `--tokenizer-mode deepseek_v4` because the checkpoint does not supply a standard Jinja chat template. For local benchmark token counting, pass `--deepseek-v4-encoder /path/to/checkpoint/encoding/encoding_dsv4.py --trust-remote-code` to the dataset generator, using the encoder from the same pinned revision as the server. Alternatively use the vLLM worker's `/tokenize` endpoint. The [Nebius H200 SGLang deployment](../deploy/sites/nebius-h200-2x8/deepseek-v4-pro/) includes a complete example. Defaults here request non-thinking behavior; for reasoning tests use the model's documented `chat_template_kwargs` and a separate comparison cohort. Think Max needs at least a 384K context budget.
+- **DeepSeek V4:** vLLM uses `--tokenizer-mode deepseek_v4` because the checkpoint does not supply a standard Jinja chat template. For local benchmark token counting, pass `--deepseek-v4-encoder /path/to/checkpoint/encoding/encoding_dsv4.py --trust-remote-code` to the dataset generator, using the encoder from the same pinned revision as the server. Alternatively use the vLLM worker's `/tokenize` endpoint. The [Nebius H200 SGLang deployment](../tracks/nvidia-dynamo/sites/nebius-h200-2x8/deepseek-v4-pro/) includes a complete example. Defaults here request non-thinking behavior; for reasoning tests use the model's documented `chat_template_kwargs` and a separate comparison cohort. Think Max needs at least a 384K context budget.
 - **Dynamo parser integration:** DeepSeek/Kimi profiles select the native tool/reasoning parser names from NVIDIA's recipes. The bundled benchmark replays recorded tool histories and measures generated payloads; it does not validate autonomous tool execution or output schemas. Confirm native tool output with the selected image before using these profiles for a live agent.
 - **llm-d Nemotron:** the model-specific flags are carried into the newer stock vLLM image as a candidate. Check its CLI, NVFP4/Mamba/NIXL support and parser plugin import before assuming equivalence with NVIDIA's patched image. For closer engine parity, `--image` may select the original NVIDIA runtime while still launching `vllm serve`; that combination also needs validation.
 

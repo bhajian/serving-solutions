@@ -1,4 +1,4 @@
-"""Operator graphs (deploy/base/dynamo) stay tied to the measured lab configuration."""
+"""Operator graphs (tracks/nvidia-dynamo/graphs) stay tied to the measured lab configuration."""
 import re
 import subprocess
 import sys
@@ -11,14 +11,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from tools import render_graphs  # noqa: E402
 
-LAB = ROOT / 'deploy/sites/nebius-h200-2x8'
+LAB = ROOT / 'tracks/nvidia-dynamo/sites/nebius-h200-2x8'
 MEASURED = {  # (model, topology) -> as-measured worker manifest
     ('nemotron-3-nano', 'aggregated'): 'nemotron-3-nano/lab/as-measured/workers-tp4-aggregated/40-workers-tp4.yaml',
     ('nemotron-3-nano', 'disaggregated'): 'nemotron-3-nano/lab/as-measured/workers-tp4-disaggregated/40-workers-tp4-disaggregated.yaml',
     ('deepseek-v4-pro', 'aggregated'): 'deepseek-v4-pro/lab/as-measured/workers-tp8-aggregated/40-workers.yaml',
     ('deepseek-v4-pro', 'disaggregated'): 'deepseek-v4-pro/lab/as-measured/workers-tp8-disaggregated/40-workers-disaggregated.yaml',
 }
-GRAPHS = sorted(ROOT.glob('deploy/base/dynamo/*/*/graph.yaml'))
+GRAPHS = sorted(ROOT.glob('tracks/nvidia-dynamo/graphs/*/*/graph.yaml'))
 # Flags the operator graph may change relative to the lab, beyond MITIGATIONS.
 ALLOWED = {'--gc-threshold', '--kv-events-config', '--max-running-requests', '--cuda-graph-max-bs-decode',
            '--bucket-inter-token-latency'}
@@ -57,13 +57,13 @@ def test_graphs_match_the_generator(tmp_path, monkeypatch):
     monkeypatch.setattr(render_graphs, 'OUT', tmp_path)
     render_graphs.main()
     for path in GRAPHS:
-        rel = path.relative_to(ROOT / 'deploy/base/dynamo')
+        rel = path.relative_to(ROOT / 'tracks/nvidia-dynamo/graphs')
         assert (tmp_path / rel).read_text() == path.read_text(), f'{rel} is stale; run tools/render_graphs.py'
 
 
 @pytest.mark.parametrize('model,topology', sorted(MEASURED))
 def test_engine_flags_equal_measured_except_documented_mitigations(model, topology):
-    g = load(ROOT / f'deploy/base/dynamo/{model}/{topology}/graph.yaml')
+    g = load(ROOT / f'tracks/nvidia-dynamo/graphs/{model}/{topology}/graph.yaml')
     lab = lab_workers(model, topology)
     for c in g['spec']['components']:
         if c['type'] == 'frontend':
@@ -76,8 +76,8 @@ def test_engine_flags_equal_measured_except_documented_mitigations(model, topolo
 
 def test_topologies_share_one_graph_name_and_frontend():
     for model in {p.parts[-3] for p in GRAPHS}:
-        agg = load(ROOT / f'deploy/base/dynamo/{model}/aggregated/graph.yaml')
-        dis = load(ROOT / f'deploy/base/dynamo/{model}/disaggregated/graph.yaml')
+        agg = load(ROOT / f'tracks/nvidia-dynamo/graphs/{model}/aggregated/graph.yaml')
+        dis = load(ROOT / f'tracks/nvidia-dynamo/graphs/{model}/disaggregated/graph.yaml')
         assert agg['metadata']['name'] == dis['metadata']['name'] == model
         types = lambda g: sorted(c['type'] for c in g['spec']['components'])
         assert types(agg) == ['frontend', 'worker'] and types(dis) == ['decode', 'frontend', 'prefill']
@@ -106,7 +106,7 @@ def test_production_hygiene(path):
 
 
 def test_prefill_memory_limit_has_headroom_over_observed_peak():
-    g = load(ROOT / 'deploy/base/dynamo/nemotron-3-nano/disaggregated/graph.yaml')
+    g = load(ROOT / 'tracks/nvidia-dynamo/graphs/nemotron-3-nano/disaggregated/graph.yaml')
     prefill = next(c for c in g['spec']['components'] if c['type'] == 'prefill')
     limit = prefill['podTemplate']['spec']['containers'][0]['resources']['limits']['memory']
     assert int(limit.rstrip('Gi')) >= 308 * 1.4, 'observed prefill peak was 308 GiB'

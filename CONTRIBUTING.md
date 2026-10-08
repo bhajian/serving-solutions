@@ -11,15 +11,30 @@ This repository is a reference architecture: readers must be able to understand 
 - **Claims are sourced or measured.** Product capabilities cite pinned versions in [reference/sources.md](reference/sources.md). Performance claims come from [benchmarks/](benchmarks/) runs with their run records. Nothing is fabricated.
 - **Unvalidated is labeled.** Anything not run on hardware says so.
 
-## Adding a deployment track
+## Where a contribution goes
 
-1. Create `deploy/NN-<control-plane>-<topology>-<engine>/` with `README.md`, `docker/` and `kubernetes/`, following an existing track.
-2. **Docker:** `node-a.yaml` and `node-b.yaml`. Site values come only from `deploy/cluster.env`. Write engine flags out in full, with a comment above the `exec` line explaining each flag group.
-3. **Kubernetes:** numbered manifests (`00-namespace`, `01-site-config`, `10-…`, `20-…`, `30-…`), a `kustomization.yaml` listing them in order, node placement by `llm-serving/node` labels, pod IPs from the Downward API, and a dedicated namespace.
-4. **Run record:** a `deployment.json` in both `docker/` and `kubernetes/` with `technology`, `backend`, `topology`, `image`, `max_model_len` and `model` (id, revision, request defaults). Add new technology labels to `benchmarks/run.py`.
-5. **Guides:** each platform README covers what you deploy, files, before you start, step-by-step deploy, verify, proof of KV transfer (if disaggregated), see results, clean up and troubleshooting.
-6. **Tests:** add the track to `tests/test_reference_manifests.py` so Compose and Kubernetes stay identical and match the model catalog.
-7. **Index:** add the track to the matrix in [deploy/README.md](deploy/README.md) and the root README, and update [ROADMAP.md](ROADMAP.md).
+| You are adding… | Put it in | Also update |
+| --- | --- | --- |
+| A decision rule, template or matrix row | [framework/](framework/README.md) | The blueprint chapter that explains it |
+| Vendor-neutral explanation | [blueprint/](blueprint/README.md) | The framework row that cites it |
+| A Dynamo deployment for a model on a site | `tracks/nvidia-dynamo/sites/<site>/<model>/` (lab) or the generators for `graphs/` and `production/` | [tracks/nvidia-dynamo/README.md](tracks/nvidia-dynamo/README.md) |
+| An llm-d path instance (model × site) | `tracks/llm-d-redhat/paths/<nn-path>/<model>-<site>/` | The path guide's *Deploy* and *Status* sections |
+| A new llm-d path guide | `tracks/llm-d-redhat/paths/<nn-path>/README.md` with the sections *What it adds · Choose it when · Prerequisites · Deploy · Test · Status* | [Track 2 README](tracks/llm-d-redhat/README.md) and the [pattern map](framework/2-decide/README.md#d4--pattern--implementation-map) |
+| A study | `tracks/<track>/studies/<name>/`: README (question, protocol, status), drivers, data, report | The [evidence register](framework/4-validate/README.md#evidence-register) |
+| Cluster prerequisites or a new site | [platform/](platform/README.md) | `platform/site.env.example` for any new placeholder |
+
+Deployment files are hand-written and commented, except the folders marked as generated in
+[tracks/nvidia-dynamo/README.md](tracks/nvidia-dynamo/README.md#generated-folders): edit their
+generator and rerun it. Site-specific values are `<PLACEHOLDER>` tokens rendered from
+`platform/site.env`; a test fails when a manifest uses one that the example file lacks.
+
+## B300 reference tracks (Dynamo)
+
+1. Create `tracks/nvidia-dynamo/sites/hgx-b300-2x8/NN-<topology>-<engine>/` and its Compose twin under `compose/`.
+2. **Docker:** `node-a.yaml` and `node-b.yaml`. Site values come only from `tracks/nvidia-dynamo/sites/hgx-b300-2x8/compose/cluster.env`. Write engine flags out in full, with a comment above the `exec` line explaining each flag group.
+3. **Kubernetes:** numbered manifests (`00-namespace`, `01-site-config`, `10-…`, `20-…`, `30-…`), a `kustomization.yaml` listing them in order, and a dedicated namespace.
+4. **Run record:** a `deployment.json` with `technology`, `backend`, `topology`, `image`, `max_model_len` and `model` (id, revision, request defaults). Add new technology labels to `benchmarks/run.py`.
+5. **Tests:** add the track to `tests/test_reference_manifests.py` so Compose and Kubernetes stay identical.
 
 ## Editing diagrams
 

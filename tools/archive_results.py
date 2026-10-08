@@ -18,7 +18,7 @@ import tarfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RESULTS = ROOT / 'results'
+STUDY_ROOTS = ROOT / 'tracks'  # completed studies: tracks/<track>/studies/<study>/
 ARCHIVES = ROOT / 'build/archives'
 RAW_SUFFIXES = {'.prom', '.jsonl', '.log', '.png'}
 MANIFEST = 'ARCHIVE-MANIFEST.sha256'
@@ -29,7 +29,7 @@ def is_raw(path):
 
 
 def studies():
-    return sorted(p for p in RESULTS.iterdir() if p.is_dir() and not p.name.startswith('20'))
+    return sorted(p for p in STUDY_ROOTS.glob('*/studies/*') if p.is_dir() and p.name != 'planned')
 
 
 def sha256(data):

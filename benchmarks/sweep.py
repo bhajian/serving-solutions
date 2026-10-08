@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Sweep RPS x P:D ratio x TP per role, then tabulate goodput at SLO.
 
-    python -m benchmarks.sweep plan  experiments/01-pd-ratio-sweep/sweep.yaml   # print the run matrix
-    python -m benchmarks.sweep run   experiments/01-pd-ratio-sweep/sweep.yaml   # needs cluster access
-    python -m benchmarks.sweep table results/pd-ratio-h200                     # summary table (offline)
+    python -m benchmarks.sweep plan  tracks/nvidia-dynamo/studies/planned/01-pd-ratio-sweep/sweep.yaml   # print the run matrix
+    python -m benchmarks.sweep run   tracks/nvidia-dynamo/studies/planned/01-pd-ratio-sweep/sweep.yaml   # needs cluster access
+    python -m benchmarks.sweep table tracks/nvidia-dynamo/studies/pd-ratio-h200                     # summary table (offline)
 
 Spec (YAML):
   study, results, dataset, gpu_count, gpu_hour_usd, slo: {ttft_ms, itl_ms}

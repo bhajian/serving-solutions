@@ -1,0 +1,31 @@
+{
+  "label": "b1",
+  "arm": "optimized-baseline",
+  "router_endpoints_seen": [],
+  "cache_resets": [
+    {
+      "replica": 0,
+      "status": 200,
+      "body": "{\"success\":true}",
+      "time": 1791479562.4750268
+    },
+    {
+      "replica": 1,
+      "status": 200,
+      "body": "{\"success\":true}",
+      "time": 1791479562.492997
+    },
+    {
+      "replica": 2,
+      "status": 200,
+      "body": "{\"success\":true}",
+      "time": 1791479562.5101314
+    },
+    {
+      "replica": 3,
+      "status": 200,
+      "body": "{\"success\":true}",
+      "time": 1791479562.519467
+    }
+  ]
+}

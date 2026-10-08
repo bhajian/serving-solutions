@@ -10,7 +10,7 @@ Dynamo wraps both engines with the same frontend, router and discovery, so deplo
 |---|---|---|
 | Dynamo worker | `python3 -m dynamo.vllm` | `python3 -m dynamo.sglang` |
 | Dynamo image | `nvcr.io/nvidia/ai-dynamo/vllm-runtime:1.4.0` (vLLM 0.26.0), pinned by digest | `nvcr.io/nvidia/ai-dynamo/sglang-runtime:1.4.0` (SGLang 0.5.16 base) |
-| llm-d worker ([deploy/04](../deploy/sites/hgx-b300-2x8/04-llm-d-disagg/)) | `vllm serve`, image `vllm/vllm-openai:v0.30.0` | `python3 -m sglang.launch_server`, image `lmsysorg/sglang:v0.5.20` |
+| llm-d worker ([llm-d path 05, B300](../tracks/llm-d-redhat/paths/05-pd-disaggregation/hgx-b300-qwen3-coder-480b/)) | `vllm serve`, image `vllm/vllm-openai:v0.30.0` | `python3 -m sglang.launch_server`, image `lmsysorg/sglang:v0.5.20` |
 | Model path flag | `--model /model` | `--model-path /model` |
 
 Each engine uses a complete engine-specific image. Never pip-install one engine into the other's image.

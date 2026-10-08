@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from tools import render_observability  # noqa: E402
 
-OBS = ROOT / 'deploy/observability'
+OBS = ROOT / 'tracks/nvidia-dynamo/observability'
 INVENTORY = {l.strip() for l in (OBS / 'metrics-inventory.txt').read_text().splitlines() if l.strip() and not l.startswith('#')}
 SUFFIXES = ('_bucket', '_sum', '_count')
 FUNCS = {'histogram_quantile', 'sum', 'rate', 'increase', 'max', 'avg', 'deriv', 'by', 'and', 'unless', 'or', 'le'}
